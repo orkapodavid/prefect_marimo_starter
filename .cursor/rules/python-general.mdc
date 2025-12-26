@@ -1,0 +1,46 @@
+---
+description: General Python coding standards and best practices
+globs: "**/*.py"
+alwaysApply: false
+---
+
+# Python Coding Standards
+
+## Style & Formatting
+
+- **Type Hints**: Use type hints for all function arguments and return types.
+- **Docstrings**: Include doscstrings for all public modules, classes, and functions.
+- **Imports**: Organize imports: Standard Library > Third Party > Local Application. Use absolute imports where possible.
+
+## Error Handling
+
+- Use specific exception handling (avoid bare `except:`).
+- Log errors using `prefect.get_run_logger()` inside tasks/flows, or standard `logging` otherwise.
+
+## Example
+
+```python
+# ✅ Correct
+from typing import List
+import logging
+
+def process_items(items: List[str]) -> int:
+    """
+    Process a list of items and return the count.
+    
+    Args:
+        items: List of strings to process
+        
+    Returns:
+        Count of processed items
+    """
+    try:
+        return len(items)
+    except Exception as e:
+        logging.error(f"Error processing items: {e}")
+        raise
+
+# ❌ Avoid
+def process(items):
+    return len(items)
+```

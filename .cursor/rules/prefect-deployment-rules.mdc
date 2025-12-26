@@ -1,0 +1,34 @@
+---
+description: Deployment configuration and Windows server requirements
+globs: prefect.yaml
+alwaysApply: false
+---
+
+# Prefect Deployment Rules
+
+## Deployment Configuration
+
+Deployments in `prefect.yaml` must point DIRECTLY to the notebook file and flow function.
+
+```yaml
+deployments:
+  - name: my-flow-prod
+    entrypoint: notebooks/etl/daily_sync.py:run_pipeline
+    work_pool:
+      name: windows-process-pool
+```
+
+## Windows Server Constraints
+
+The target deployment environment is an **Air-Gapped Windows Server**.
+
+- **Worker Type**: Process (spawns local Python processes).
+- **No Docker**: Do not rely on Docker containers for execution.
+- **Service Management**: Uses NSSM (Non-Sucking Service Manager).
+- **Authentication**: IIS Reverse Proxy with Windows Authentication.
+
+## Best Practices
+
+- Use parameterized flows to handle environment differences (dev vs prod).
+- Use `prefect.blocks.system.Secret` for sensitive data entry, do not hardcode secrets.
+- Ensure all dependencies are explicitly listed in `pyproject.toml` (and inline script metadata) as internet access is restricted.

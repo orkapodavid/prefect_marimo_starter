@@ -1,0 +1,79 @@
+{
+  "version": "1",
+  "metadata": {
+    "marimo_version": "0.18.4"
+  },
+  "cells": [
+    {
+      "id": "Hbol",
+      "code_hash": "65fc25bfc322f14d442f238d068b5e5d",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "MJUe",
+      "code_hash": "a22802f5e13738ce53a04062f99379e3",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "vblA",
+      "code_hash": "dc7bf758207d27824ca8dd5f3f548a6a",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "bkHC",
+      "code_hash": "8ceea61ac689c35a3b83000a298261a7",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<marimo-ui-element object-id='bkHC-0' random-id='8a50d7dc-c2b0-627c-c0e0-df6478a3b4a2'><marimo-table data-initial-value='[]' data-label='null' data-data='&quot;[{&#92;&quot;id&#92;&quot;:1,&#92;&quot;name&#92;&quot;:&#92;&quot;Alpha&#92;&quot;,&#92;&quot;value&#92;&quot;:10.5,&#92;&quot;timestamp&#92;&quot;:&#92;&quot;2025-12-25 10:50:44.975419&#92;&quot;},{&#92;&quot;id&#92;&quot;:2,&#92;&quot;name&#92;&quot;:&#92;&quot;Beta&#92;&quot;,&#92;&quot;value&#92;&quot;:20.0,&#92;&quot;timestamp&#92;&quot;:&#92;&quot;2025-12-25 10:50:44.975419&#92;&quot;},{&#92;&quot;id&#92;&quot;:3,&#92;&quot;name&#92;&quot;:&#92;&quot;Gamma&#92;&quot;,&#92;&quot;value&#92;&quot;:15.2,&#92;&quot;timestamp&#92;&quot;:&#92;&quot;2025-12-25 10:50:44.975419&#92;&quot;},{&#92;&quot;id&#92;&quot;:4,&#92;&quot;name&#92;&quot;:&#92;&quot;Delta&#92;&quot;,&#92;&quot;value&#92;&quot;:5.8,&#92;&quot;timestamp&#92;&quot;:&#92;&quot;2025-12-25 10:50:44.975419&#92;&quot;},{&#92;&quot;id&#92;&quot;:5,&#92;&quot;name&#92;&quot;:&#92;&quot;Epsilon&#92;&quot;,&#92;&quot;value&#92;&quot;:30.1,&#92;&quot;timestamp&#92;&quot;:&#92;&quot;2025-12-25 10:50:44.975419&#92;&quot;}]&quot;' data-total-rows='5' data-total-columns='4' data-max-columns='50' data-banner-text='&quot;&quot;' data-pagination='true' data-page-size='10' data-field-types='[[&quot;id&quot;,[&quot;integer&quot;,&quot;int64&quot;]],[&quot;name&quot;,[&quot;string&quot;,&quot;object&quot;]],[&quot;value&quot;,[&quot;number&quot;,&quot;float64&quot;]],[&quot;timestamp&quot;,[&quot;datetime&quot;,&quot;datetime64[us]&quot;]]]' data-show-filters='true' data-show-download='true' data-show-column-summaries='false' data-show-data-types='true' data-show-page-size-selector='false' data-show-column-explorer='true' data-show-chart-builder='true' data-row-headers='[]' data-has-stable-row-id='false' data-lazy='false' data-preload='false'></marimo-table></marimo-ui-element>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "lEQa",
+      "code_hash": "9bf51ca224ac7e53cacb87c5f7466df2",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "vQQI",
+      "code_hash": null,
+      "outputs": [],
+      "console": []
+    }
+  ]
+}

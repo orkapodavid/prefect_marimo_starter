@@ -1,0 +1,103 @@
+---
+description: Coding standards for unified Prefect + Marimo notebooks
+globs: notebooks/**/*.py
+alwaysApply: true
+---
+
+# Unified Prefect + Marimo Patterns
+
+## Core Architecture
+
+This project uses a unified pattern where each notebook is BOTH:
+- An interactive development environment (marimo edit mode)
+- A production Prefect flow (script mode / Prefect deployment)
+
+### 1. Decorator Stacking (CRITICAL)
+
+Always use `@app.function` FIRST, then the Prefect decorator. This ensures functions are registered with both Marimo and Prefect.
+
+```python
+# ✅ CORRECT
+@app.function
+@task(retries=2)
+def extract_data():
+    ...
+
+@app.function
+@flow(name="my-flow")
+def run_flow():
+    ...
+
+# ❌ WRONG
+@task
+@app.function  # Don't do this
+def bad_task():
+    ...
+```
+
+### 2. Mode-Conditional Execution
+
+Use `mo.app_meta().mode` to separate interactive usage from production execution.
+
+```python
+@app.cell
+def _(mo):
+    if mo.app_meta().mode == "edit":
+        # Interactive widgets, debugging
+        # ONLY runs in `marimo edit`
+        pass
+
+@app.cell
+def _(mo):
+    if mo.app_meta().mode == "script":
+        # Production execution logic
+        run_pipeline()
+```
+
+### 3. Shared Imports
+
+Use `app.setup` for imports shared across all `@app.function` definitions.
+
+```python
+with app.setup:
+    from prefect import task, flow
+    import polars as pl
+```
+
+## Notebook Template
+
+Start new notebooks with this structure:
+
+```python
+# /// script
+# requires-python = ">=3.12"
+# dependencies = ["marimo", "prefect", "polars"]
+# ///
+
+import marimo
+
+__generated_with = "0.18.4"
+app = marimo.App()
+
+with app.setup:
+    from prefect import task, flow
+
+@app.function
+@task
+def my_task():
+    pass
+
+@app.function
+@flow
+def my_flow():
+    my_task()
+
+if __name__ == "__main__":
+    app.run()
+```
+
+## Anti-Patterns
+
+- **Don't** separate flows and notebooks. Define the flow INSIDE the notebook.
+- **Don't** use `MarimoNotebookRunner`.
+- **Don't** put logic in global scope outside of `@app.cell` or `@app.function` (except setup).

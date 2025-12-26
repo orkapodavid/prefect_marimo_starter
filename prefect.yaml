@@ -1,0 +1,58 @@
+name: prefect-marimo-workflows
+prefect-version: "3.0"
+
+# Reusable definitions
+definitions:
+  work_pools:
+    windows_pool: &windows_pool
+      name: windows-process-pool
+      work_queue_name: default
+  
+  schedules:
+    daily_6am: &daily_6am
+      cron: "0 6 * * *"
+      timezone: "Asia/Hong_Kong"
+    
+    hourly_business: &hourly_business
+      cron: "0 9-18 * * 1-5"
+      timezone: "Asia/Hong_Kong"
+
+# Deployments point directly to notebook flows
+
+# Generic pull step for all deployments (avoids "remote storage" prompts)
+pull:
+  - prefect.deployments.steps.set_working_directory:
+      directory: .
+
+deployments:
+  - name: daily-data-sync-dev
+    entrypoint: notebooks/etl/daily_data_sync.py:run_daily_sync
+    description: "Daily data sync - Development"
+    tags: [dev, etl]
+    parameters:
+      source: "data/dev/input.parquet"
+      destination: "data/dev/output.parquet"
+      environment: "dev"
+    work_pool: *windows_pool
+    schedules: []
+
+  - name: daily-data-sync-prod
+    entrypoint: notebooks/etl/daily_data_sync.py:run_daily_sync
+    description: "Daily data sync - Production"
+    tags: [prod, etl]
+    parameters:
+      source: "//fileserver/data/input/daily.parquet"
+      destination: "//fileserver/data/output/synced.parquet"
+      environment: "prod"
+    work_pool: *windows_pool
+    schedules:
+      - *daily_6am
+
+  - name: daily-summary-report
+    entrypoint: notebooks/reports/daily_summary.py:run_report
+    description: "Daily summary report generation"
+    tags: [prod, reports]
+    work_pool: *windows_pool
+    schedules:
+      - cron: "0 7 * * *"
+        timezone: "Asia/Hong_Kong"

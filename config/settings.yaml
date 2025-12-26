@@ -1,0 +1,28 @@
+# Base settings (can be overridden by environment)
+app:
+  name: "Prefect Marimo Workflows"
+  version: "1.0.0"
+
+database:
+  url: "${DATABASE_URL:-sqlite:///data/workflow.db}"
+  pool_size: 5
+  
+prefect:
+  api_url: "${PREFECT_API_URL:-http://localhost:4200/api}"
+  work_pool: "windows-process-pool"
+  
+paths:
+  data: "${DATA_PATH:-./data}"
+  logs: "${LOG_PATH:-./logs}"
+  reports: "${REPORT_PATH:-./reports}"
+
+processing:
+  batch_size: 1000
+  timeout_seconds: 300
+  retry_attempts: 3
+
+notifications:
+  enabled: true
+  email: "${NOTIFICATION_EMAIL:-}"
+  on_failure: true
+  on_success: false
