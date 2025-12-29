@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List, Dict, Optional, Any
+from typing import List, Dict, Optional, Tuple, Any
 import logging
 
 from exchangelib import Account, Configuration, Credentials, Message, FileAttachment, DELEGATE

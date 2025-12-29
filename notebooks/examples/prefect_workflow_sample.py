@@ -80,6 +80,11 @@ def add_features(dataf):
 
 @app.cell
 def _():
+    return
+
+
+@app.cell
+def _():
     def test_demo():
         assert True
 

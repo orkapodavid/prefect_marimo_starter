@@ -17,6 +17,14 @@ param(
 
 $ErrorActionPreference = "Stop"
 
+# Define Project Root (Assuming script is in scripts/windows/)
+$ScriptDir = Split-Path $MyInvocation.MyCommand.Path
+# Resolve-Path might fail if the path doesn't exist, but we are in the repo.
+# relative path from scripts/windows to root is ../..
+$ProjectRoot = (Get-Item "$ScriptDir\..\..").FullName
+
+Write-Host "Project Root detected as: $ProjectRoot" -ForegroundColor Gray
+
 # Create destination directory
 if (-not (Test-Path $Destination)) {
     Write-Host "Creating directory: $Destination" -ForegroundColor Cyan
@@ -62,10 +70,16 @@ if (Test-Path "python.exe") {
 }
 
 Write-Host "Creating temp venv for dependency resolution..."
-& $PythonCmd -m venv $DownloadEnv
+try {
+    & $PythonCmd -m venv $DownloadEnv
+} catch {
+    Write-Host "Failed to create venv. Ensure python is in your PATH." -ForegroundColor Red
+    exit 1
+}
+
 $PipCmd = Join-Path $DownloadEnv "Scripts\pip.exe"
 
-Write-Host "Downloading pip wheels for Project..."
+Write-Host "Downloading pip wheels for Project from: $ProjectRoot"
 # We target win_amd64 and the specified Python version
 # Note: We point to ProjectRoot to get all dependencies defined in pyproject.toml
 & $PipCmd download "$ProjectRoot" `
@@ -74,31 +88,16 @@ Write-Host "Downloading pip wheels for Project..."
     --python-version 3.12 `
     --only-binary=:all:
 
-# Download missing sources if any (fallback)
-& $PipCmd download "$ProjectRoot" `
-    --dest (Join-Path $Destination "wheels") `
-    --platform win_amd64 `
-    --python-version 3.12 `
-    --no-deps
-
-# ... (previous code) ...
-
 # 5. Bundle Project Source Code
 Write-Host "Bundling project source code..." -ForegroundColor Cyan
 $AppDest = Join-Path $Destination "app"
 New-Item -ItemType Directory -Force -Path $AppDest | Out-Null
 
-# Get the project root (assuming script is run from scripts/windows or project root)
-# If this script is run from scripts/windows, project root is ../..
-$ScriptDir = Split-Path $MyInvocation.MyCommand.Path
-$ProjectRoot = Resolve-Path "$ScriptDir\..\.."
-
 # Robocopy is more robust for exclusions, but Copy-Item is standard PowerShell.
-# specific exclusions
-$Exclude = @('.git', '.venv', 'venv', '.idea', '.vscode', '__pycache__', 'node_modules', 'offline-packages', 'build', 'dist', '*.pyc')
+# specific exclusions to keep the bundle clean
+$Exclude = @('.git', '.venv', 'venv', '.idea', '.vscode', '__pycache__', 'node_modules', 'offline-packages', 'build', 'dist', '*.pyc', '.env')
 
 Get-ChildItem -Path $ProjectRoot -Exclude $Exclude | ForEach-Object {
-    # Check if it matches exclusions (recursive copy doesn't handle root excludes well in native cmdlet without logic)
     if ($Exclude -notcontains $_.Name) {
         Copy-Item -Path $_.FullName -Destination $AppDest -Recurse -Force
     }

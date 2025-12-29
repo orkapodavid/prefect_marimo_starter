@@ -19,18 +19,6 @@ class Settings(BaseSettings):
     batch_size: int = Field(default=1000)
     retry_attempts: int = Field(default=3)
     timeout_seconds: int = Field(default=300)
-
-    # MS SQL Dev
-    dev_mssql_server: str = Field(default="localhost")
-    dev_mssql_database: str = Field(default="dev_db")
-    dev_mssql_username: str = Field(default="dev_user")
-    dev_mssql_password: str = Field(default="dev_pass")
-
-    # MS SQL Prod
-    prod_mssql_server: str = Field(default="prod_server")
-    prod_mssql_database: str = Field(default="prod_db")
-    prod_mssql_username: str = Field(default="prod_user")
-    prod_mssql_password: str = Field(default="prod_pass")
     
     class Config:
         env_file = ".env"
