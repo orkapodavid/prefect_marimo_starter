@@ -9,16 +9,35 @@ from pydantic import Field
 class Settings(BaseSettings):
     """Application settings loaded from environment."""
     
+    # App Info
+    app_name: str = Field(default="Prefect Marimo Workflows")
+    app_version: str = Field(default="1.0.0")
     environment: str = Field(default="dev")
-    database_url: str = Field(default="sqlite:///data/workflow.db")
-    data_directory: Path = Field(default=Path("./data"))
     log_level: str = Field(default="INFO")
+
+    # Database
+    database_url: str = Field(default="sqlite:///data/workflow.db")
+    db_pool_size: int = Field(default=5)
+
+    # Prefect
     prefect_api_url: str = Field(default="http://localhost:4200/api")
+    work_pool_name: str = Field(default="windows-process-pool")
+
+    # Paths
+    data_directory: Path = Field(default=Path("./data"))
+    log_directory: Path = Field(default=Path("./logs"))
+    reports_directory: Path = Field(default=Path("./reports"))
     
     # Processing defaults
     batch_size: int = Field(default=1000)
     retry_attempts: int = Field(default=3)
     timeout_seconds: int = Field(default=300)
+
+    # Notifications
+    notification_enabled: bool = Field(default=True)
+    notification_email: str = Field(default="")
+    notify_on_failure: bool = Field(default=True)
+    notify_on_success: bool = Field(default=False)
 
     # MS SQL Dev
     dev_mssql_server: str = Field(default="localhost")
