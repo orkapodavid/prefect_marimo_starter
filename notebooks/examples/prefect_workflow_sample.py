@@ -85,6 +85,7 @@ def _():
 
     def test_also_demo():
         assert True
+
     return
 
 
@@ -106,6 +107,7 @@ def pretend_to_write_to_db(dataf):
 @app.cell
 def _():
     import marimo as mo
+
     return (mo,)
 
 
@@ -131,6 +133,7 @@ def _(cached, df, max_session_threshold, mo):
             .plot.line(x="date", y="len", color="set")
             .properties(width=600)
         )
+
     return (plot_per_date,)
 
 
@@ -164,7 +167,7 @@ def _(mo):
 
 @app.cell
 def _(chart, max_session_threshold, mo):
-    out = None 
+    out = None
     if mo.app_meta().mode == "edit":
         out = mo.vstack([max_session_threshold, chart])
     out

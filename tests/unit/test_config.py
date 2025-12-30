@@ -1,6 +1,5 @@
 from src.shared_utils.config import get_settings
-import os
-from unittest.mock import patch
+
 
 def test_get_settings():
     """Test that settings can be loaded."""
