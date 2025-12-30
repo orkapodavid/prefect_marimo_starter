@@ -12,4 +12,4 @@ SELECT
 FROM
     Customers
 WHERE
-    CustomerID = @customer_id;
+    CustomerID = ?;

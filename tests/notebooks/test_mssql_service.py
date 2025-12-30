@@ -115,8 +115,9 @@ def _(customer_id_input, mo, os, run_query_btn, service):
                     # From tests/notebooks/ -> ../../
                     sql_file = "../../" + sql_file
 
+                # Pass params as a list for positional replacement
                 df = service.execute_query_from_file(
-                    file_path=sql_file, params={"customer_id": customer_id_input.value}
+                    file_path=sql_file, params=[customer_id_input.value]
                 )
 
                 if not df.empty:
