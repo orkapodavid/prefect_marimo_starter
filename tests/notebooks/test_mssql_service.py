@@ -82,7 +82,7 @@ def _(MSSQLService, env_selector, get_settings, mo):
 def _(mo):
     mo.md(
         r"""
-        ## Execute Query from File
+        ## Execute Query from File (Structured)
         """
     )
     return
@@ -131,6 +131,55 @@ def _(customer_id_input, mo, os, run_query_btn, service):
 
     query_result
     return df, query_result, sql_file
+
+
+@app.cell
+def _(mo):
+    mo.md(
+        r"""
+        ## Execute Plain SQL File & Direct Execution
+        """
+    )
+    return
+
+
+@app.cell
+def _(mo, os, service):
+    plain_query_result = mo.md("")
+    direct_query_result = mo.md("")
+
+    if service:
+        try:
+            # Test Plain SQL File
+            sql_file_plain = "sql/sales/simple_query.sql"
+            if not os.path.exists(sql_file_plain):
+                sql_file_plain = "../../" + sql_file_plain
+
+            # Using USA as country
+            df_plain = service.execute_query_from_file(file_path=sql_file_plain, params=["USA"])
+            plain_query_result = mo.vstack(
+                [
+                    mo.md("### Plain SQL File Result"),
+                    mo.ui.table(df_plain) if not df_plain.empty else mo.md("No results."),
+                ]
+            )
+
+            # Test Direct Execution
+            df_direct = service.execute_query(
+                "SELECT * FROM Customers WHERE Country = ?", params=["USA"]
+            )
+            direct_query_result = mo.vstack(
+                [
+                    mo.md("### Direct Execution Result"),
+                    mo.ui.table(df_direct) if not df_direct.empty else mo.md("No results."),
+                ]
+            )
+
+        except Exception as e:
+            plain_query_result = mo.md(f"❌ Error: {str(e)}")
+
+    mo.vstack([plain_query_result, direct_query_result])
+    return direct_query_result, df_direct, df_plain, plain_query_result, sql_file_plain
 
 
 if __name__ == "__main__":
