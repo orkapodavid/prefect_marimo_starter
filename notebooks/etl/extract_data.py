@@ -13,7 +13,7 @@ app = marimo.App(width="medium")
 def imports():
     import pandas as pd
 
-    from workflow_utils.config import get_settings
+    from src.shared_utils.config import get_settings
     return get_settings, pd
 
 
