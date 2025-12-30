@@ -9,10 +9,30 @@ import logging
 
 
 class MSSQLService:
-    """A service for connecting to and querying a Microsoft SQL Server database."""
+    """A service for connecting to and querying a Microsoft SQL Server database.
+
+    Connection is established lazily on first use. Supports both explicit
+    connection management and context manager protocol for automatic cleanup.
+
+    Usage:
+        # Recommended: Context manager
+        with MSSQLService(server, db, user, pwd) as service:
+            df = service.execute_query("SELECT * FROM table")
+
+        # Alternative: Explicit management
+        service = MSSQLService(server, db, user, pwd)
+        service.connect()
+        try:
+            df = service.execute_query("SELECT * FROM table")
+        finally:
+            service.disconnect()
+    """
 
     def __init__(self, server: str, database: str, username: str, password: str):
-        """Initializes the MSSQLService with database credentials."""
+        """Initializes the MSSQLService with database credentials.
+
+        Connection is established lazily on first use.
+        """
         self.server = server
         self.database = database
         self.username = username
@@ -27,11 +47,14 @@ class MSSQLService:
             if not self.logger.handlers:
                 logging.basicConfig(level=logging.INFO)
 
-        self._connect()
+    def connect(self):
+        """Establishes a connection to the SQL Server database.
 
-    def _connect(self):
-        """Establishes a connection to the SQL Server database."""
+        Can be called explicitly or will be called automatically on first query.
+        Safe to call multiple times (idempotent).
+        """
         if self.cnxn:
+            self.logger.debug("Already connected, skipping connection")
             return
 
         conn_str = (
@@ -41,6 +64,7 @@ class MSSQLService:
             f"UID={self.username};"
             f"PWD={self.password};"
         )
+
         try:
             self.cnxn = pyodbc.connect(conn_str)
             self.logger.info(
@@ -49,6 +73,27 @@ class MSSQLService:
         except Exception as e:
             self.logger.error(f"Failed to connect to database: {e}")
             raise
+
+    def disconnect(self):
+        """Closes the database connection if open."""
+        if self.cnxn:
+            try:
+                self.cnxn.close()
+                self.cnxn = None
+                self.logger.info("Database connection closed.")
+            except Exception as e:
+                self.logger.warning(f"Error closing connection: {e}")
+
+    def __enter__(self):
+        """Context manager entry: establish connection."""
+        self.connect()
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """Context manager exit: clean up connection."""
+        self.disconnect()
+        # Don't suppress exceptions
+        return False
 
     def execute_query(self, sql: str, params: list = None) -> pd.DataFrame:
         """Execute SQL query directly without requiring a file.
@@ -67,6 +112,11 @@ class MSSQLService:
             )
         """
         self.logger.info("Executing direct SQL query")
+
+        # Auto-connect if needed
+        if not self.cnxn:
+            self.logger.debug("Auto-connecting to database")
+            self.connect()
 
         try:
             df = pd.read_sql_query(sql, self.cnxn, params=params if params else None)
@@ -117,12 +167,3 @@ class MSSQLService:
             self.logger.info("Executing plain SQL file (no metadata)")
 
         return self.execute_query(sql_query, params)
-
-    def __del__(self):
-        """Destructor to close the database connection."""
-        if self.cnxn:
-            try:
-                self.cnxn.close()
-                self.logger.info("Database connection closed.")
-            except Exception:
-                pass
