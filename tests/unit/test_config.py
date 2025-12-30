@@ -1,4 +1,4 @@
-from shared_utils.config import get_settings
+from src.shared_utils.config import get_settings
 import os
 from unittest.mock import patch
 

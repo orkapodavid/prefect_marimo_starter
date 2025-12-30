@@ -316,23 +316,24 @@ def my_task():
 
 ---
 
-## Testing Notebooks
+## Testing
 
-```python
-# tests/test_notebooks.py
-def test_flow_importable():
-    from notebooks.etl.daily_sync import run_pipeline
-    assert callable(run_pipeline)
-    assert hasattr(run_pipeline, "fn")  # Prefect flow attribute
+Tests are consolidated in the `tests/` directory:
 
-def test_notebook_syntax(notebook_path):
-    import subprocess
-    result = subprocess.run(
-        ["marimo", "check", str(notebook_path)],
-        capture_output=True
-    )
-    assert result.returncode == 0
-```
+*   `tests/unit/`: Unit tests (pytest).
+*   `tests/integration/`: Integration tests (pytest).
+*   `tests/notebooks/`: Interactive Marimo notebooks for manual verification.
+
+### Adding New Tests
+
+*   **Unit Tests**: Create a new file `tests/unit/test_<name>.py`. Use standard `pytest` conventions.
+*   **Integration Tests**: Create a new file `tests/integration/test_<name>.py`.
+*   **Notebook Tests**: Create a new Marimo notebook `tests/notebooks/test_<name>.py`. Use the standard Marimo notebook template.
+
+### Running Tests
+
+*   Unit/Integration: `pytest`
+*   Notebooks: `marimo edit tests/notebooks/<name>.py`
 
 ---
 

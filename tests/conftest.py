@@ -1,6 +1,6 @@
 import pytest
 
-from shared_utils.config import Settings
+from src.shared_utils.config import Settings
 
 
 @pytest.fixture
