@@ -1,5 +1,5 @@
 # /// script
-# requires-python = ">=3.11"
+# requires-python = ">=3.12"
 # dependencies = ["marimo", "pandas", "sqlalchemy"]
 # ///
 
@@ -14,6 +14,7 @@ def imports():
     import pandas as pd
 
     from src.shared_utils.config import get_settings
+
     return get_settings, pd
 
 
@@ -54,6 +55,7 @@ def run(parameters: dict = None) -> dict:
     outputs, defs = app.run()
     # We return the 'result' variable from extract_logic cell
     return defs.get("result", {"status": "unknown"})
+
 
 if __name__ == "__main__":
     app.run()

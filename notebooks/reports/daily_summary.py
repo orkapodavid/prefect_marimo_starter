@@ -23,22 +23,20 @@ with app.setup:
 @task
 def generate_summary_data() -> pl.DataFrame:
     """Generate dummy summary data."""
-    return pl.DataFrame({
-        "category": ["A", "B", "C", "A", "B", "C"],
-        "value": [10, 20, 30, 15, 25, 35],
-        "date": ["2023-01-01"] * 3 + ["2023-01-02"] * 3
-    })
+    return pl.DataFrame(
+        {
+            "category": ["A", "B", "C", "A", "B", "C"],
+            "value": [10, 20, 30, 15, 25, 35],
+            "date": ["2023-01-01"] * 3 + ["2023-01-02"] * 3,
+        }
+    )
 
 
 @app.function
 @task
 def create_chart(df: pl.DataFrame):
     """Create an Altair chart."""
-    chart = alt.Chart(df).mark_bar().encode(
-        x="date",
-        y="value",
-        color="category"
-    )
+    chart = alt.Chart(df).mark_bar().encode(x="date", y="value", color="category")
     # in a real flow, you might save this chart or email it
     return chart.to_json()
 
@@ -56,6 +54,7 @@ def run_report():
 @app.cell
 def _():
     import marimo as mo
+
     return (mo,)
 
 
@@ -64,8 +63,6 @@ def _(mo):
     if mo.app_meta().mode == "script":
         run_report()
     return
-
-
 
 
 if __name__ == "__main__":

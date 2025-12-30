@@ -8,7 +8,7 @@ from pydantic import Field
 
 class Settings(BaseSettings):
     """Application settings loaded from environment."""
-    
+
     # App Info
     app_name: str = Field(default="Prefect Marimo Workflows")
     app_version: str = Field(default="1.0.0")
@@ -20,14 +20,14 @@ class Settings(BaseSettings):
     db_pool_size: int = Field(default=5)
 
     # Prefect
-    prefect_api_url: str = Field(default="http://localhost:4200/api")
+    prefect_api_url: str | None = Field(default=None)
     work_pool_name: str = Field(default="windows-process-pool")
 
     # Paths
     data_directory: Path = Field(default=Path("./data"))
     log_directory: Path = Field(default=Path("./logs"))
     reports_directory: Path = Field(default=Path("./reports"))
-    
+
     # Processing defaults
     batch_size: int = Field(default=1000)
     retry_attempts: int = Field(default=3)
@@ -50,7 +50,7 @@ class Settings(BaseSettings):
     prod_mssql_database: str = Field(default="prod_db")
     prod_mssql_username: str = Field(default="prod_user")
     prod_mssql_password: str = Field(default="prod_pass")
-    
+
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"

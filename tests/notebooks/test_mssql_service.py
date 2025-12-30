@@ -34,11 +34,7 @@ def _(mo):
 
 @app.cell
 def _(mo):
-    env_selector = mo.ui.dropdown(
-        options=["dev", "prod"],
-        value="dev",
-        label="Environment"
-    )
+    env_selector = mo.ui.dropdown(options=["dev", "prod"], value="dev", label="Environment")
     env_selector
     return (env_selector,)
 
@@ -69,12 +65,14 @@ def _(MSSQLService, env_selector, get_settings, mo):
             # in this test environment, but we want to instantiate the object if possible.
             # However, MSSQLService connects in __init__, so it will fail if no DB.
             # For demonstration, we will try to connect.
-            service = MSSQLService(server=server, database=database, username=username, password=password)
+            service = MSSQLService(
+                server=server, database=database, username=username, password=password
+            )
             service_status_md = mo.md(f"✅ Service connected to `{server}/{database}`")
         except Exception as e:
             service_status_md = mo.md(f"❌ Failed to connect: {str(e)}")
     else:
-         service_status_md = mo.md("⚠️ Missing credentials in configuration.")
+        service_status_md = mo.md("⚠️ Missing credentials in configuration.")
 
     service_status_md
     return database, password, server, service, service_status_md, settings, username
@@ -118,8 +116,7 @@ def _(customer_id_input, mo, os, run_query_btn, service):
                     sql_file = "../../" + sql_file
 
                 df = service.execute_query_from_file(
-                    file_path=sql_file,
-                    params={"customer_id": customer_id_input.value}
+                    file_path=sql_file, params={"customer_id": customer_id_input.value}
                 )
 
                 if not df.empty:
