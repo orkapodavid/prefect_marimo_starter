@@ -1,12 +1,12 @@
 import pytest
 
-from workflow_utils.config import Settings
+from shared_utils.config import Settings
 
 
 @pytest.fixture
 def test_settings():
     """Provides a settings object for testing."""
-    return Settings(environment="dev", database_url="sqlite:///:memory:", app_name="Test Workflow")
+    return Settings(environment="dev", database_url="sqlite:///:memory:")
 
 
 @pytest.fixture(autouse=True)

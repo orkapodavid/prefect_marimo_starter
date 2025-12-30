@@ -23,7 +23,11 @@ def _():
 
 @app.cell
 def _(mo):
-    mo.md(r"""# Exchange Service Test Notebook""")
+    mo.md(
+        r"""
+        # Exchange Service Test Notebook
+        """
+    )
     return
 
 
@@ -44,7 +48,7 @@ def _(ExchangeEmailService, mo, os):
         except Exception as e:
             service_status = mo.md(f"❌ Failed to initialize service: {str(e)}")
     else:
-         service_status = mo.md(f"⚠️ Missing credentials in .env file. Please check `EXCHANGE_USERNAME`, `EXCHANGE_PASSWORD`, and `EXCHANGE_EWS_URL`.")
+         service_status = mo.md("⚠️ Missing credentials in .env file. Please check `EXCHANGE_USERNAME`, `EXCHANGE_PASSWORD`, and `EXCHANGE_EWS_URL`.")
          
     service_status
     return ews_url, password, service, service_status, username
@@ -52,7 +56,11 @@ def _(ExchangeEmailService, mo, os):
 
 @app.cell
 def _(mo):
-    mo.md(r"""## Fetch Emails""")
+    mo.md(
+        r"""
+        ## Fetch Emails
+        """
+    )
     return
 
 
@@ -123,7 +131,11 @@ def _(
 
 @app.cell
 def _(mo):
-    mo.md(r"""## Send Email""")
+    mo.md(
+        r"""
+        ## Send Email
+        """
+    )
     return
 
 
