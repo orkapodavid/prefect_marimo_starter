@@ -318,22 +318,41 @@ def my_task():
 
 ## Testing
 
-Tests are consolidated in the `tests/` directory:
+Tests are located in the `tests/` directory:
 
-*   `tests/unit/`: Unit tests (pytest).
-*   `tests/integration/`: Integration tests (pytest).
-*   `tests/notebooks/`: Interactive Marimo notebooks for manual verification.
+*   `tests/unit/`: Unit tests (pytest) - **This is the primary testing approach**
+
+### Testing Philosophy
+
+- **Unit tests only**: Focus on fast, isolated tests of core logic
+- **Mock external dependencies**: Use `unittest.mock` or `pytest` fixtures to mock databases, APIs, and external libraries
+- **No integration tests**: Integration testing is not part of the current testing strategy
+- **No notebook tests**: Manual verification of notebooks is done directly via `marimo edit notebooks/<name>.py`
 
 ### Adding New Tests
 
 *   **Unit Tests**: Create a new file `tests/unit/test_<name>.py`. Use standard `pytest` conventions.
-*   **Integration Tests**: Create a new file `tests/integration/test_<name>.py`.
-*   **Notebook Tests**: Create a new Marimo notebook `tests/notebooks/test_<name>.py`. Use the standard Marimo notebook template.
+*   Follow the mocking pattern from existing tests (e.g., `test_mssql_service_unit.py`)
 
 ### Running Tests
 
-*   Unit/Integration: `pytest`
-*   Notebooks: `marimo edit tests/notebooks/<name>.py`
+```bash
+# Run all unit tests
+pytest
+
+# Run specific test file
+pytest tests/unit/test_<name>.py
+
+# Run with verbose output
+pytest -v
+```
+
+### Manual Notebook Testing
+
+To manually test notebooks interactively:
+```bash
+marimo edit notebooks/<path>/<name>.py
+```
 
 ---
 
