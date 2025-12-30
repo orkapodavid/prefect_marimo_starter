@@ -14,7 +14,7 @@ def _():
     import pandas as pd
     
     # shared_utils and services are available via installed package
-    from services.exchange_email.exchange_email_service import ExchangeEmailService
+    from src.services.exchange_email.exchange_email_service import ExchangeEmailService
     
     # Load environment variables
     load_dotenv()

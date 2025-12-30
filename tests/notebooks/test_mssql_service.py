@@ -114,7 +114,8 @@ def _(customer_id_input, mo, os, run_query_btn, service):
                 if not os.path.exists(sql_file):
                     # Try going up levels if running from subdir
                     # We reuse the 'os' module passed from the first cell
-                    sql_file = "../../../../" + sql_file
+                    # From tests/notebooks/ -> ../../
+                    sql_file = "../../" + sql_file
 
                 df = service.execute_query_from_file(
                     file_path=sql_file,
