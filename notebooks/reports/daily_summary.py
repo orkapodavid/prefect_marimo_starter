@@ -66,12 +66,6 @@ def _(mo):
     return
 
 
-@app.cell
-def _():
-    # Remove the condition and capture the result
-    result = run_report()
-    result  # Display the result
-    return
 
 
 if __name__ == "__main__":
