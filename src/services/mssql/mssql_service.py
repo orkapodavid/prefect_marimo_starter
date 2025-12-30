@@ -50,13 +50,42 @@ class MSSQLService:
             self.logger.error(f"Failed to connect to database: {e}")
             raise
 
-    def execute_query_from_file(self, file_path: str, params: list = None) -> pd.DataFrame:
-        """Reads a .sql file, parses metadata, and executes the query with parameters.
+    def execute_query(self, sql: str, params: list = None) -> pd.DataFrame:
+        """Execute SQL query directly without requiring a file.
 
         Args:
-            file_path: Path to the .sql file containing the query
+            sql: SQL query string with ? placeholders
+            params: Optional list of positional parameters
+
+        Returns:
+            DataFrame containing query results
+
+        Example:
+            df = service.execute_query(
+                "SELECT * FROM Customers WHERE Country = ?",
+                params=["USA"]
+            )
+        """
+        self.logger.info("Executing direct SQL query")
+
+        try:
+            df = pd.read_sql_query(sql, self.cnxn, params=params if params else None)
+            self.logger.info(f"Query executed successfully, returning {len(df)} rows.")
+            return df
+        except Exception as e:
+            self.logger.error(f"Error executing SQL query: {e}")
+            raise
+
+    def execute_query_from_file(self, file_path: str, params: list = None) -> pd.DataFrame:
+        """Reads a .sql file and executes the query with optional metadata.
+
+        Supports two formats:
+        1. Plain SQL files (just SQL query)
+        2. Structured files with YAML frontmatter (metadata + SQL)
+
+        Args:
+            file_path: Path to the .sql file
             params: Optional list of positional parameters matching ? placeholders in SQL
-                    Example: [123] for single parameter, [123, "active"] for multiple
 
         Returns:
             DataFrame containing query results
@@ -70,23 +99,24 @@ class MSSQLService:
 
         content = full_path.read_text()
 
-        # Parse metadata and SQL query
-        parts = content.split("---", 2)
-        if len(parts) < 3:
-            self.logger.error("SQL file must contain a YAML metadata block.")
-            raise ValueError("Invalid SQL file format.")
+        # Auto-detect file format
+        if content.strip().startswith("---"):
+            # Structured format with YAML frontmatter
+            parts = content.split("---", 2)
+            if len(parts) < 3:
+                self.logger.error("Invalid SQL file format: incomplete YAML block")
+                raise ValueError("Invalid SQL file format.")
 
-        metadata_str, sql_query = parts[1], parts[2]
-        metadata = yaml.safe_load(metadata_str)
-        self.logger.info(f"Query Description: {metadata.get('description', 'N/A')}")
+            metadata_str, sql_query = parts[1], parts[2]
+            metadata = yaml.safe_load(metadata_str)
+            description = metadata.get("description", "N/A")
+            self.logger.info(f"Query Description: {description}")
+        else:
+            # Plain SQL format
+            sql_query = content
+            self.logger.info("Executing plain SQL file (no metadata)")
 
-        try:
-            df = pd.read_sql_query(sql_query, self.cnxn, params=params if params else None)
-            self.logger.info(f"Query executed successfully, returning {len(df)} rows.")
-            return df
-        except Exception as e:
-            self.logger.error(f"Error executing query from {file_path}: {e}")
-            raise
+        return self.execute_query(sql_query, params)
 
     def __del__(self):
         """Destructor to close the database connection."""
