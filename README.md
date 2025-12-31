@@ -95,20 +95,19 @@ prefect worker start --pool windows-process-pool --type process
 
 Tests are organized into the following directories:
 
-*   `tests/unit`: Unit tests for individual components. These should be fast and not require external dependencies.
-*   `tests/integration`: Integration tests that may involve multiple components or external systems (e.g., databases, APIs).
-*   `tests/notebooks`: Interactive Marimo notebooks used for manual verification and exploration.
+*   `tests/unit`: Unit tests for individual components. **This is the primary testing approach.**
 
 ### Running Tests
 
-We use `pytest` to run unit and integration tests.
+We use `pytest` to run unit tests.
 
-- **Run all tests:** `pytest`
-- **Run unit tests:** `pytest tests/unit`
-- **Run integration tests:** `pytest tests/integration`
+- **Run all unit tests:** `pytest`
+- **Run specific test:** `pytest tests/unit/test_<name>.py`
 
-Notebook tests are interactive Marimo notebooks. You can run them to manually verify functionality.
-- **Run notebook test:** `marimo edit tests/notebooks/<notebook_name>.py`
+### Manual Notebook Verification
+
+Notebooks are developed interactively and should be verified manually:
+- **Edit/Test notebook:** `marimo edit notebooks/<path>/<name>.py`
 
 ## AI Assistant Integration
 
