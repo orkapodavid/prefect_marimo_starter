@@ -61,7 +61,8 @@ def _():
 @app.cell
 def _(mo):
     if mo.app_meta().mode == "script":
-        run_report()
+        result = run_report()
+        print(f"Flow result: {result}")
     return
 
 
