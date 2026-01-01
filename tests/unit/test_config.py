@@ -9,9 +9,6 @@ def test_get_settings():
 
 def test_settings_override(monkeypatch):
     """Test that environment override works."""
-    # Reset lru_cache to ensure we get a fresh instance
-    get_settings.cache_clear()
-
     # Mock environment variable
     # The config.py uses 'ENVIRONMENT' env var (defaulting to 'dev')
     monkeypatch.setenv("ENVIRONMENT", "prod")

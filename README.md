@@ -45,10 +45,19 @@ This project uses `uv` for fast package management.
 curl -LsSf https://astral.sh/uv/install.sh | sh
 
 # Create virtual environment and install dependencies
-uv sync
+uv sync --extra dev
+
+# Install project in editable mode (IMPORTANT)
+uv pip install -e .
+
+# Create environment configuration file
+cp .env.example .env
 
 # Activate environment
 source .venv/bin/activate
+
+# Validate setup
+./scripts/local/validate-setup.sh
 ```
 
 **Windows:**
@@ -57,11 +66,22 @@ source .venv/bin/activate
 powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
 
 # Create virtual environment and install dependencies
-uv sync
+uv sync --extra dev
+
+# Install project in editable mode (IMPORTANT)
+uv pip install -e .
+
+# Create environment configuration file
+copy .env.example .env
 
 # Activate environment
 .venv\Scripts\activate
 ```
+
+**⚠️ Important Notes:**
+- The `uv pip install -e .` step is **required** to make `src` modules importable
+- Without this step, notebooks and tests will fail with `ModuleNotFoundError`
+- The `.env` file is needed for consistent configuration across notebooks and tests
 
 ### 3. Start Infrastructure
 
@@ -160,3 +180,75 @@ This starter includes a comprehensive suite of scripts for deploying to air-gapp
 5. Add script execution with `if mo.app_meta().mode == "script":`
 6. Add deployment to `prefect.yaml`
 7. Deploy: `prefect deploy --name my-workflow-prod`
+
+## Troubleshooting
+
+### Import Errors (`ModuleNotFoundError: No module named 'src'`)
+
+**Problem**: Running notebooks or tests fails with import errors.
+
+**Solution**:
+```bash
+# Ensure package is installed in editable mode
+uv pip install -e .
+
+# Verify installation
+python -c "from src.shared_utils.config import get_settings; print('Success!')"
+```
+
+### Tests Failing
+
+**Problem**: `pytest` fails with configuration or import errors.
+
+**Solution**:
+```bash
+# 1. Ensure virtual environment is activated
+source .venv/bin/activate  # Mac/Linux
+# OR
+.venv\Scripts\activate  # Windows
+
+# 2. Reinstall package in editable mode
+uv pip install -e .
+
+# 3. Ensure .env file exists
+cp .env.example .env
+
+# 4. Run validation script
+./scripts/local/validate-setup.sh
+
+# 5. Run tests
+pytest -v
+```
+
+### Notebook Execution Fails
+
+**Problem**: `python notebooks/etl/daily_data_sync.py` fails.
+
+**Solution**:
+```bash
+# 1. Check that required directories exist
+ls -la data/input data/output
+
+# 2. Verify package installation
+python -c "import src.shared_utils.config"
+
+# 3. Run with explicit Python path (if needed)
+PYTHONPATH=. python notebooks/etl/daily_data_sync.py
+```
+
+### Environment Not Activated
+
+**Problem**: Commands fail because wrong Python version is used.
+
+**Solution**:
+```bash
+# Mac/Linux
+source .venv/bin/activate
+
+# Windows
+.venv\Scripts\activate
+
+# Verify correct Python
+which python  # Should show .venv/bin/python
+python --version  # Should be 3.12+
+```
