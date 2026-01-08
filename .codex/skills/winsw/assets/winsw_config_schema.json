@@ -1,0 +1,85 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "WinSW Config JSON Mirror (Non-Official)",
+  "type": "object",
+  "properties": {
+    "service": {
+      "type": "object",
+      "required": ["id", "executable"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "executable": { "type": "string", "minLength": 1 },
+        "startarguments": { "type": "string" },
+        "arguments": { "type": "string" },
+        "stoptimeout": { "type": "string", "pattern": "^\\d+\\s+(sec|secs|min|mins|hour|hours|day|days)$" },
+        "workingdirectory": { "type": "string" },
+        "priority": { "type": "string", "enum": ["idle","belownormal","normal","abovenormal","high","realtime"] },
+        "log": {
+          "type": "object",
+          "properties": {
+            "mode": { "type": "string", "enum": ["append","reset","ignore","roll"] },
+            "path": { "type": "string" }
+          }
+        },
+        "hooks": {
+          "type": "object",
+          "properties": {
+            "prestart": { "$ref": "#/definitions/hook" },
+            "poststart": { "$ref": "#/definitions/hook" },
+            "prestop": { "$ref": "#/definitions/hook" },
+            "poststop": { "$ref": "#/definitions/hook" }
+          }
+        },
+        "serviceaccount": {
+          "type": "object",
+          "properties": {
+            "username": { "type": "string" },
+            "password": { "type": "string" },
+            "allowservicelogon": { "type": "boolean" }
+          }
+        },
+        "onfailure": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "action": { "type": "string", "enum": ["restart","reboot","none"] },
+              "delay": { "type": "string", "pattern": "^\\d+\\s+(sec|secs|min|mins|hour|hours|day|days)$" }
+            },
+            "required": ["action"]
+          }
+        },
+        "resetfailure": { "type": "string", "pattern": "^\\d+\\s+(sec|secs|min|mins|hour|hours|day|days)$" },
+        "env": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name","value"],
+            "properties": { "name": { "type": "string" }, "value": { "type": "string" } }
+          }
+        },
+        "sharedDirectoryMapping": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["label","uncpath"],
+            "properties": { "label": { "type": "string" }, "uncpath": { "type": "string" } }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "hook": {
+      "type": "object",
+      "properties": {
+        "executable": { "type": "string" },
+        "arguments": { "type": "string" },
+        "stdoutPath": { "type": "string" },
+        "stderrPath": { "type": "string" }
+      }
+    }
+  }
+}

@@ -1,6 +1,6 @@
 # Deploying Prefect 3.x on Air-Gapped Windows Server 2019
 
-Prefect 3.x can be successfully deployed on an offline Windows Server 2019 environment using pre-downloaded packages, NSSM for service management, and IIS as a secure reverse proxy with Windows Authentication. This guide provides complete step-by-step instructions for the entire deployment process, from Python installation through verification testing.
+Prefect 3.x can be successfully deployed on an offline Windows Server 2019 environment using pre-downloaded packages, WinSW (Windows Service Wrapper) for service management, and IIS as a secure reverse proxy with Windows Authentication. This guide provides complete step-by-step instructions for the entire deployment process, from Python installation through verification testing.
 
 The deployment requires **Python 3.12**, approximately **80-100 wheel files** for offline installation (including project-specific dependencies like `pyodbc` and `marimo`), and uses SQLite by default.
 
@@ -20,7 +20,7 @@ Run the included script from the project root on a machine with internet access:
 
 This script will:
 1. Download the Python 3.12 installer.
-2. Download NSSM (Service Manager).
+2. Download WinSW (Service Wrapper).
 3. Download IIS Rewrite and ARR modules.
 4. Download all Python wheels defined in `pyproject.toml` (Prefect, Marimo, PyODBC, etc.).
 5. Bundle the application source code into `C:\PrefectOffline\app`.
@@ -30,7 +30,7 @@ This script will:
 If you cannot run the script, manually download the following to `C:\PrefectOffline`:
 
 1.  **Python 3.12.4 Installer (amd64)** from python.org.
-2.  **NSSM 2.24-101** zip from nssm.cc.
+2.  **WinSW** x64 executable (rename to `winsw.exe`) from the WinSW releases page (e.g., v2.12.0).
 3.  **IIS URL Rewrite Module 2.0 (x64)** from Microsoft.
 4.  **Application Request Routing 3.0 (x64)** from Microsoft.
 5.  **Python Wheels**:
@@ -94,45 +94,77 @@ pip install --no-index --find-links=C:\PrefectOffline\wheels C:\PrefectOffline\a
 
 Prefect uses SQLite by default at `%PREFECT_HOME%\prefect.db`. No extra setup required.
 
-#### 4. Configure Services (NSSM)
+#### 4. Configure Services (WinSW)
 
-Extract `nssm.exe` to `C:\PrefectServer\nssm.exe`.
+Move the downloaded `winsw.exe` to your installation directory (e.g., `C:\PrefectServer`). You will make two copies of this executable: one for the server and one for the worker, and create a corresponding XML configuration file for each.
 
-**Prefect Server Service (Production Hardened):**
-```powershell
-nssm install PrefectServer "C:\PrefectServer\venv\Scripts\python.exe"
-nssm set PrefectServer AppParameters "-m prefect server start --host 127.0.0.1 --port 4200"
-nssm set PrefectServer AppDirectory "C:\PrefectServer"
-nssm set PrefectServer AppEnvironmentExtra "PREFECT_HOME=C:\PrefectServer\data" "PREFECT_API_URL=http://127.0.0.1:4200/api" "PYTHONIOENCODING=UTF-8"
+**A. Prefect Server Service:**
 
-# Logging and Rotation
-nssm set PrefectServer AppStdout "C:\PrefectServer\Logs\server-stdout.log"
-nssm set PrefectServer AppStderr "C:\PrefectServer\Logs\server-stderr.log"
-nssm set PrefectServer AppRotateFiles 1
-nssm set PrefectServer AppRotateOnline 1
-nssm set PrefectServer AppRotateBytes 10485760
+1. Copy `winsw.exe` to `C:\PrefectServer\PrefectServer.exe`.
+2. Create `C:\PrefectServer\PrefectServer.xml` with the following content:
 
-# Recovery and Restart
-nssm set PrefectServer AppThrottle 5000
-nssm set PrefectServer AppExit Default Restart
-nssm set PrefectServer AppRestartDelay 10000
-
-nssm start PrefectServer
+```xml
+<service>
+  <id>PrefectServer</id>
+  <name>Prefect Orchestration Server</name>
+  <description>Prefect 3.x workflow orchestration server</description>
+  <executable>venv\Scripts\python.exe</executable>
+  <arguments>-m prefect server start --host 127.0.0.1 --port 4200</arguments>
+  <workingdirectory>%BASE%</workingdirectory>
+  <env name="PREFECT_HOME" value="%BASE%\data"/>
+  <env name="PREFECT_SERVER_API_HOST" value="127.0.0.1"/>
+  <env name="PREFECT_SERVER_API_PORT" value="4200"/>
+  <env name="PYTHONUNBUFFERED" value="1"/>
+  <env name="PYTHONIOENCODING" value="UTF-8"/>
+  <log mode="roll-by-size">
+    <directory>%BASE%\Logs</directory>
+    <sizeThreshold>10240</sizeThreshold> <!-- 10MB -->
+    <keepFiles>1</keepFiles>
+  </log>
+  <onfailure action="restart" delay="10 sec"/>
+</service>
 ```
 
-**Prefect Worker Service:**
+3. Install and Start:
 ```powershell
-nssm install PrefectWorker "C:\PrefectServer\venv\Scripts\python.exe"
-nssm set PrefectWorker AppParameters "-m prefect worker start --pool my-process-pool --type process"
-nssm set PrefectWorker AppEnvironmentExtra "PREFECT_API_URL=http://127.0.0.1:4200/api" "PREFECT_HOME=C:\PrefectServer\data" "PYTHONIOENCODING=UTF-8"
-nssm set PrefectWorker DependOnService PrefectServer
+Cd C:\PrefectServer
+.\PrefectServer.exe install
+.\PrefectServer.exe start
+```
 
-# Logging
-nssm set PrefectWorker AppStdout "C:\PrefectServer\Logs\worker-stdout.log"
-nssm set PrefectWorker AppStderr "C:\PrefectServer\Logs\worker-stderr.log"
-nssm set PrefectWorker AppRotateFiles 1
+**B. Prefect Worker Service:**
 
-nssm start PrefectWorker
+1. Copy `winsw.exe` to `C:\PrefectServer\PrefectWorker.exe`.
+2. Create `C:\PrefectServer\PrefectWorker.xml`:
+
+```xml
+<service>
+  <id>PrefectWorker</id>
+  <name>Prefect Worker - Process Pool</name>
+  <description>Prefect Worker for Process Pool</description>
+  <executable>venv\Scripts\python.exe</executable>
+  <!-- Update pool name if different -->
+  <arguments>-m prefect worker start --pool my-process-pool --type process</arguments>
+  <workingdirectory>%BASE%</workingdirectory>
+  <depend>PrefectServer</depend>
+  <env name="PREFECT_API_URL" value="http://127.0.0.1:4200/api"/>
+  <env name="PREFECT_HOME" value="%BASE%\data"/>
+  <env name="PYTHONUNBUFFERED" value="1"/>
+  <env name="PYTHONIOENCODING" value="UTF-8"/>
+  <log mode="roll-by-size">
+    <directory>%BASE%\Logs</directory>
+    <sizeThreshold>10240</sizeThreshold>
+    <keepFiles>1</keepFiles>
+  </log>
+  <onfailure action="restart" delay="10 sec"/>
+  <startmode>DelayedStart</startmode>
+</service>
+```
+
+3. Install and Start:
+```powershell
+.\PrefectWorker.exe install
+.\PrefectWorker.exe start
 ```
 
 #### 5. IIS Configuration
@@ -184,8 +216,8 @@ nssm start PrefectWorker
 ### Service Status
 
 ```powershell
-nssm status PrefectServer
-nssm status PrefectWorker
+Get-Service PrefectServer
+Get-Service PrefectWorker
 ```
 
 ### Deploy and run a sample test workflow

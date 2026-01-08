@@ -1,0 +1,30 @@
+<service>
+  <id>PrefectServer</id>
+  <name>Prefect Orchestration Server</name>
+  <description>Prefect 3.x workflow orchestration server</description>
+  
+  <!-- Executable and Arguments -->
+  <executable>venv\Scripts\python.exe</executable>
+  <arguments>-m prefect server start --host 127.0.0.1 --port 4200</arguments>
+  
+  <!-- Working Directory (The directory containing the xml/exe) -->
+  <workingdirectory>%BASE%</workingdirectory>
+  
+  <!-- Environment Variables -->
+  <env name="PREFECT_HOME" value="%BASE%\data"/>
+  <env name="PREFECT_SERVER_API_HOST" value="127.0.0.1"/>
+  <env name="PREFECT_SERVER_API_PORT" value="4200"/>
+  <env name="PYTHONUNBUFFERED" value="1"/>
+  <env name="PYTHONIOENCODING" value="UTF-8"/>
+  
+  <!-- Logging -->
+  <log mode="roll-by-size">
+    <directory>%BASE%\Logs</directory>
+    <sizeThreshold>10240</sizeThreshold> <!-- 10MB in KB -->
+    <keepFiles>1</keepFiles>
+  </log>
+  
+  <!-- Restart Policy -->
+  <onfailure action="restart" delay="10 sec"/>
+  <startmode>Automatic</startmode>
+</service>

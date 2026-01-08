@@ -1,0 +1,37 @@
+<service>
+  <!-- ID of the service. It should be unique across the Windows system-->
+  <id>jenkins</id>
+  <!-- Display name of the service -->
+  <name>Jenkins</name>
+  <!-- Service description -->
+  <description>Jenkins Continuous Integration and Deployment server</description>
+
+  <!-- Path to the executable, which should be started -->
+  <executable>java</executable>
+  <!-- Arguments to pass to the executable -->
+  <arguments>-Xrs -Xmx256m -jar "%BASE%\jenkins.war" --httpPort=8080</arguments>
+  
+  <!-- Environment variables -->
+  <env name="JENKINS_HOME" value="%BASE%\data"/>
+
+  <!-- Logging configuration -->
+  <log mode="roll-by-size">
+    <sizeThreshold>10240</sizeThreshold>
+    <keepFiles>8</keepFiles>
+  </log>
+  
+  <!-- Restoration strategy: Restart the service on failure -->
+  <onfailure action="restart" delay="10 sec"/>
+  <onfailure action="restart" delay="20 sec"/>
+  
+  <!-- Allow the service to be controlled via standard Windows commands -->
+  <startmode>Automatic</startmode>
+  
+  <!-- Service account (optional, defaults to LocalSystem) -->
+  <!-- <serviceaccount>
+       <domain>YOURDOMAIN</domain>
+       <user>useraccount</user>
+       <password>pa$$word</password>
+       <allowservicelogon>true</allowservicelogon>
+  </serviceaccount> -->
+</service>

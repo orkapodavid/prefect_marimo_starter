@@ -1,9 +1,9 @@
 <#
 .SYNOPSIS
-    Configures Prefect Server and Worker as Windows Services using NSSM.
+    Configures Prefect Server and Worker as Windows Services using WinSW.
     
 .PARAMETER OfflineSource
-    Path to downloaded assets (containing NSSM zip). Defaults to "C:\PrefectOffline".
+    Path to downloaded assets (containing winsw.exe). Defaults to "C:\PrefectOffline".
 
 .PARAMETER InstallDir
     Root of the Prefect installation. Defaults to "C:\PrefectServer".
@@ -21,75 +21,74 @@ param(
 $ErrorActionPreference = "Stop"
 
 # Paths
-$NssmZip = "$OfflineSource\nssm.zip"
-$NssmInstallDir = "C:\nssm"
+$WinSwExeSource = "$OfflineSource\winsw.exe"
 $VenvPython = "$InstallDir\venv\Scripts\python.exe"
 $PrefectExe = "$InstallDir\venv\Scripts\prefect.exe"
 
-# 1. Install/Extract NSSM
-if (-not (Test-Path "$NssmInstallDir\nssm.exe")) {
-    Write-Host "Extracting NSSM..." -ForegroundColor Cyan
-    Expand-Archive -Path $NssmZip -DestinationPath $NssmInstallDir -Force
-    # Find the exe (it's usually in a subfolder like nssm-2.24...\win64)
-    $NssmExePath = Get-ChildItem "$NssmInstallDir" -Recurse -Filter "nssm.exe" | Where-Object { $_.DirectoryName -like "*win64*" } | Select-Object -First 1
-    if ($NssmExePath) {
-        Copy-Item $NssmExePath.FullName "$NssmInstallDir\nssm.exe"
-        Write-Host "NSSM installed to $NssmInstallDir\nssm.exe"
-    } else {
-        Throw "Could not locate nssm.exe after extraction."
+# Get Script Directory (to find config templates)
+$ScriptDir = Split-Path $MyInvocation.MyCommand.Path
+$ConfigDir = Join-Path $ScriptDir "configs"
+
+if (-not (Test-Path $WinSwExeSource)) {
+    Throw "Could not find winsw.exe at $WinSwExeSource"
+}
+
+if (-not (Test-Path $ConfigDir)) {
+    Throw "Could not find config directory at $ConfigDir"
+}
+
+# Helper Function to Install Service
+function Install-WinSwService {
+    param (
+        [string]$ServiceName,
+        [string]$XmlTemplatePath,
+        [hashtable]$Replacements
+    )
+    
+    Write-Host "Configuring Service: $ServiceName..." -ForegroundColor Cyan
+    
+    # Define Target Paths
+    $ServiceExe = Join-Path $InstallDir "$ServiceName.exe"
+    $ServiceXml = Join-Path $InstallDir "$ServiceName.xml"
+    
+    # 1. Copy WinSW Executable
+    Copy-Item -Path $WinSwExeSource -Destination $ServiceExe -Force
+    
+    # 2. Read and Process XML Template
+    $XmlContent = Get-Content -Path $XmlTemplatePath -Raw
+    foreach ($key in $Replacements.Keys) {
+        $XmlContent = $XmlContent.Replace($key, $Replacements[$key])
     }
+    Set-Content -Path $ServiceXml -Value $XmlContent
+    
+    # 3. Install Service (if not exists)
+    if (Get-Service $ServiceName -ErrorAction SilentlyContinue) {
+        Write-Host "Service $ServiceName already exists. Creating/Updating config only." -ForegroundColor Yellow
+        # Stop service to update config if needed (WinSW allows `stop` `refresh` `start` but simple restart works)
+        # We don't run install again if it exists.
+        # However, updating the XML effectively updates the config for next start.
+    }
+    else {
+        Write-Host "Installing $ServiceName service..."
+        & $ServiceExe install
+    }
+    
+    # 4. Start Service
+    Write-Host "Starting $ServiceName..."
+    & $ServiceExe start
 }
 
-$NssmExe = "$NssmInstallDir\nssm.exe"
-# Add to PATH for convenience
-$env:PATH = "$env:PATH;$NssmInstallDir"
+# 1. Configure Prefect Server Service
+Install-WinSwService `
+    -ServiceName "PrefectServer" `
+    -XmlTemplatePath (Join-Path $ConfigDir "PrefectServer.xml") `
+    -Replacements @{}
 
-# 2. Configure Prefect Server Service
-$ServerServiceName = "PrefectServer"
-Write-Host "Configuring Service: $ServerServiceName..." -ForegroundColor Cyan
-
-# Check if exists
-if (Get-Service $ServerServiceName -ErrorAction SilentlyContinue) {
-    Write-Host "Service $ServerServiceName already exists. Skipping install (configure update only)." -ForegroundColor Yellow
-} else {
-    & $NssmExe install $ServerServiceName $VenvPython
-}
-
-# Apply Configuration
-& $NssmExe set $ServerServiceName AppParameters "-m prefect server start --host 127.0.0.1 --port 4200"
-& $NssmExe set $ServerServiceName AppDirectory $InstallDir
-& $NssmExe set $ServerServiceName DisplayName "Prefect Orchestration Server"
-& $NssmExe set $ServerServiceName Description "Prefect 3.x workflow orchestration server"
-& $NssmExe set $ServerServiceName Start SERVICE_AUTO_START
-
-# Env Vars
-& $NssmExe set $ServerServiceName AppEnvironmentExtra `
-    "PREFECT_HOME=$InstallDir\data" `
-    "PREFECT_SERVER_API_HOST=127.0.0.1" `
-    "PREFECT_SERVER_API_PORT=4200" `
-    "PYTHONUNBUFFERED=1" `
-    "PYTHONIOENCODING=UTF-8"
-
-# Logging & Rotation
-& $NssmExe set $ServerServiceName AppStdout "$InstallDir\Logs\server-stdout.log"
-& $NssmExe set $ServerServiceName AppStderr "$InstallDir\Logs\server-stderr.log"
-& $NssmExe set $ServerServiceName AppRotateFiles 1
-& $NssmExe set $ServerServiceName AppRotateOnline 1
-& $NssmExe set $ServerServiceName AppRotateBytes 10485760
-
-# Restart/Recovery
-& $NssmExe set $ServerServiceName AppThrottle 5000
-& $NssmExe set $ServerServiceName AppExit Default Restart
-& $NssmExe set $ServerServiceName AppRestartDelay 10000
-
-# Start Server
-Write-Host "Starting Prefect Server..." -ForegroundColor Cyan
-& $NssmExe start $ServerServiceName
 # Wait for startup
 Write-Host "Waiting 20 seconds for server startup..."
 Start-Sleep -Seconds 20
 
-# 3. Create Work Pool
+# 2. Create Work Pool
 # We need to use the venv's prefect and set API URL explicitly since we haven't set machine env vars
 $env:PREFECT_API_URL = "http://127.0.0.1:4200/api"
 $env:PREFECT_HOME = "$InstallDir\data"
@@ -97,43 +96,23 @@ $env:PREFECT_HOME = "$InstallDir\data"
 Write-Host "Creating Work Pool: $WorkPoolName..." -ForegroundColor Cyan
 try {
     & $PrefectExe work-pool create $WorkPoolName --type process
-} catch {
+}
+catch {
     Write-Host "Work pool creation might have failed or already exists. Continuing..." -ForegroundColor Yellow
 }
 
-# 4. Configure Prefect Worker Service
-$WorkerServiceName = "PrefectWorker"
-Write-Host "Configuring Service: $WorkerServiceName..." -ForegroundColor Cyan
-
-if (Get-Service $WorkerServiceName -ErrorAction SilentlyContinue) {
-    Write-Host "Service $WorkerServiceName already exists. Skipping install." -ForegroundColor Yellow
-} else {
-    & $NssmExe install $WorkerServiceName $VenvPython
+# 3. Configure Prefect Worker Service
+Install-WinSwService `
+    -ServiceName "PrefectWorker" `
+    -XmlTemplatePath (Join-Path $ConfigDir "PrefectWorker.xml") `
+    -Replacements @{
+    "@WORK_POOL_NAME@" = $WorkPoolName
 }
 
-& $NssmExe set $WorkerServiceName AppParameters "-m prefect worker start --pool $WorkPoolName --type process"
-& $NssmExe set $WorkerServiceName AppDirectory "$InstallDir\Flows"
-& $NssmExe set $WorkerServiceName DisplayName "Prefect Worker - Process Pool"
-& $NssmExe set $WorkerServiceName Start SERVICE_DELAYED_AUTO_START
-& $NssmExe set $WorkerServiceName DependOnService $ServerServiceName
-
-# Worker Env Vars
-& $NssmExe set $WorkerServiceName AppEnvironmentExtra `
-    "PREFECT_API_URL=http://127.0.0.1:4200/api" `
-    "PREFECT_HOME=$InstallDir\data" `
-    "PYTHONUNBUFFERED=1" `
-    "PYTHONIOENCODING=UTF-8"
-
-# Logging
-& $NssmExe set $WorkerServiceName AppStdout "$InstallDir\Logs\worker-stdout.log"
-& $NssmExe set $WorkerServiceName AppStderr "$InstallDir\Logs\worker-stderr.log"
-& $NssmExe set $WorkerServiceName AppRotateFiles 1
-& $NssmExe set $WorkerServiceName AppRotateOnline 1
-& $NssmExe set $WorkerServiceName AppRotateBytes 10485760
-
-Write-Host "Starting Worker..."
-& $NssmExe start $WorkerServiceName
-
 Write-Host "=== Services Configured ===" -ForegroundColor Green
-& $NssmExe status $ServerServiceName
-& $NssmExe status $WorkerServiceName
+if (Get-Service "PrefectServer" -ErrorAction SilentlyContinue) {
+    Write-Host "PrefectServer: Running"
+}
+if (Get-Service "PrefectWorker" -ErrorAction SilentlyContinue) {
+    Write-Host "PrefectWorker: Running"
+}

@@ -1,0 +1,32 @@
+<service>
+  <id>PrefectWorker</id>
+  <name>Prefect Worker - Process Pool</name>
+  <description>Prefect Worker for Process Pool</description>
+  
+  <!-- Executable and Arguments -->
+  <executable>venv\Scripts\python.exe</executable>
+  <!-- @WORK_POOL_NAME@ placeholder will be replaced by the install script -->
+  <arguments>-m prefect worker start --pool @WORK_POOL_NAME@ --type process</arguments>
+  
+  <!-- Working Directory -->
+  <workingdirectory>%BASE%</workingdirectory>
+  
+  <!-- Dependencies -->
+  <depend>PrefectServer</depend>
+  
+  <!-- Environment Variables -->
+  <env name="PREFECT_API_URL" value="http://127.0.0.1:4200/api"/>
+  <env name="PREFECT_HOME" value="%BASE%\data"/>
+  <env name="PYTHONUNBUFFERED" value="1"/>
+  <env name="PYTHONIOENCODING" value="UTF-8"/>
+  
+  <!-- Logging -->
+  <log mode="roll-by-size">
+    <directory>%BASE%\Logs</directory>
+    <sizeThreshold>10240</sizeThreshold> <!-- 10MB in KB -->
+    <keepFiles>1</keepFiles>
+  </log>
+  
+  <onfailure action="restart" delay="10 sec"/>
+  <startmode>DelayedStart</startmode>
+</service>

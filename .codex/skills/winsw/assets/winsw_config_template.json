@@ -1,0 +1,26 @@
+{
+  "service": {
+    "id": "myapp",
+    "name": "My App",
+    "description": "Runs My App as a Windows Service",
+    "executable": "%BASE%\\myExecutable.exe",
+    "startarguments": "--port 8080",
+    "stoptimeout": "30 sec",
+    "workingdirectory": "%BASE%",
+    "priority": "normal",
+    "log": { "mode": "roll", "path": "%BASE%\\logs" },
+    "hooks": {
+      "prestart": { "executable": "cmd", "arguments": "/c echo Prestart" },
+      "poststart": { "executable": "cmd", "arguments": "/c echo Poststart" },
+      "prestop": { "executable": "cmd", "arguments": "/c echo Prestop" },
+      "poststop": { "executable": "cmd", "arguments": "/c echo Poststop" }
+    },
+    "serviceaccount": { "username": "NT AUTHORITY\\LocalService" },
+    "onfailure": [
+      { "action": "restart", "delay": "10 sec" }
+    ],
+    "resetfailure": "1 day",
+    "env": [ { "name": "MY_ENV", "value": "%BASE%" } ],
+    "sharedDirectoryMapping": [ { "label": "N:", "uncpath": "\\\\SERVER\\Share" } ]
+  }
+}

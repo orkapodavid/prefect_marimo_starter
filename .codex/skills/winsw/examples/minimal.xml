@@ -1,0 +1,13 @@
+<service>
+  <!-- ID of the service. It should be unique across the Windows system-->
+  <id>myapp</id>
+  <!-- Display name of the service -->
+  <name>My App Service</name>
+  <!-- Service description -->
+  <description>This service runs My App.</description>
+  
+  <!-- Path to the executable, which should be started -->
+  <executable>node.exe</executable>
+  <!-- Arguments to pass to the executable -->
+  <arguments>server.js</arguments>
+</service>

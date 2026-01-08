@@ -38,11 +38,11 @@ $PythonInstaller = Join-Path $Destination "python-$PythonVersion-amd64.exe"
 Write-Host "Downloading Python $PythonVersion from $PythonUrl..." -ForegroundColor Cyan
 Invoke-WebRequest -Uri $PythonUrl -OutFile $PythonInstaller
 
-# 2. Download NSSM
-$NssmUrl = "https://nssm.cc/ci/nssm-2.24-101-g897c7ad.zip"
-$NssmZip = Join-Path $Destination "nssm.zip"
-Write-Host "Downloading NSSM from $NssmUrl..." -ForegroundColor Cyan
-Invoke-WebRequest -Uri $NssmUrl -OutFile $NssmZip
+# 2. Download WinSW (Service Wrapper)
+$WinSwUrl = "https://github.com/winsw/winsw/releases/download/v2.12.0/WinSW-x64.exe"
+$WinSwExe = Join-Path $Destination "winsw.exe"
+Write-Host "Downloading WinSW from $WinSwUrl..." -ForegroundColor Cyan
+Invoke-WebRequest -Uri $WinSwUrl -OutFile $WinSwExe
 
 # 3. Download IIS Modules
 # URL Rewrite
