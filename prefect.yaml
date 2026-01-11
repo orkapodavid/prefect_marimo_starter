@@ -16,6 +16,18 @@ definitions:
     hourly_business: &hourly_business
       cron: "0 9-18 * * 1-5"
       timezone: "Asia/Hong_Kong"
+    
+    asx_market_close: &asx_market_close
+      cron: "0 18 * * 1-5"
+      timezone: "Australia/Sydney"
+    
+    asx_morning_midday_close: &asx_morning_midday_close
+      cron: "30 9,13,16 * * 1-5"
+      timezone: "Australia/Sydney"
+    
+    asx_appendix5b_times: &asx_appendix5b_times
+      cron: "0 10,14,17 * * 1-5"
+      timezone: "Australia/Sydney"
 
 # Deployments point directly to notebook flows
 
@@ -56,3 +68,45 @@ deployments:
     schedules:
       - cron: "0 7 * * *"
         timezone: "Asia/Hong_Kong"
+
+  # ASX Scraper Deployments
+  - name: asx-pipe-scraper-daily
+    entrypoint: notebooks/asx/asx_pipe_scraper.py:run_pipe_scraper
+    description: "ASX PIPE/Placement announcements scraper - Daily scan"
+    tags: [prod, asx, pipe]
+    parameters:
+      output_dir: "./outputs/pipe"
+      period: "week"
+      sample_size: 0
+      download_pdfs: false
+      use_database: true
+    work_pool: *windows_pool
+    schedules:
+      - *asx_market_close
+
+  - name: asx-announcement-scraper-watchlist
+    entrypoint: notebooks/asx/asx_announcement_scraper.py:run_announcement_scraper
+    description: "ASX announcement scraper for watchlist tickers"
+    tags: [prod, asx, watchlist]
+    parameters:
+      tickers: ["CBA", "NAB", "BHP", "RIO", "WES"]
+      period: "today"
+      output_dir: "./outputs/watchlist"
+      download_pdfs: true
+      output_format: "both"
+      use_database: true
+    work_pool: *windows_pool
+    schedules:
+      - *asx_morning_midday_close
+
+  - name: asx-appendix5b-scraper-daily
+    entrypoint: notebooks/asx/asx_appendix5b_scraper.py:run_appendix5b_scraper
+    description: "ASX Appendix 5B cash flow report scraper"
+    tags: [prod, asx, appendix5b]
+    parameters:
+      output_dir: "./outputs/appendix5b"
+      download_pdfs: true
+      use_database: true
+    work_pool: *windows_pool
+    schedules:
+      - *asx_appendix5b_times
