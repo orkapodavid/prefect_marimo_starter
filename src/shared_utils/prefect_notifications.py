@@ -36,7 +36,11 @@ def _send_notification(flow, flow_run, state, subject_prefix: str):
         return
 
     settings = get_settings()
-    recipient = settings.notification_email if settings.notification_email else "admin@company.com"
+    recipient = settings.notification_email
+
+    if not recipient:
+        logger.warning("Notification email not configured. Skipping notification.")
+        return
 
     subject = f"{subject_prefix}: {flow.name}"
     body = f"""
