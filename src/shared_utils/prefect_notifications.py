@@ -2,7 +2,6 @@ import logging
 import os
 from typing import Optional
 
-from prefect.blocks.system import Secret
 from src.services.exchange_email.exchange_email_service import ExchangeEmailService
 from src.shared_utils.config import get_settings
 
@@ -13,20 +12,15 @@ def _get_exchange_service() -> Optional[ExchangeEmailService]:
     Helper to get authenticated Exchange service.
     """
     try:
-        # Load password from Secret
-        try:
-            password_block = Secret.load("exchange-password")
-            password = password_block.get()
-        except ValueError:
-            logger.warning("Secret 'exchange-password' not found. Notifications disabled.")
+        settings = get_settings()
+
+        username = settings.exchange_username
+        password = settings.exchange_password
+        ews_url = settings.exchange_ews_url
+
+        if not password:
+            logger.warning("Exchange password not configured in settings. Notifications disabled.")
             return None
-
-        # Determine sender username
-        # Try environment variable or fallback
-        username = os.environ.get("EXCHANGE_USERNAME", "user@company.com")
-
-        # Determine EWS URL (optional)
-        ews_url = os.environ.get("EXCHANGE_EWS_URL")
 
         return ExchangeEmailService(username=username, password=password, ews_url=ews_url)
     except Exception as e:

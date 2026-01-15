@@ -1,31 +1,15 @@
 # Instructions for Setting Up Exchange Notifications
 
-To enable Exchange notifications for flow failures, you must create a Prefect Secret block with your Exchange password.
+The workflow uses environment variables to configure Exchange notifications. You can set these in a `.env` file or as environment variables in your deployment.
 
-1.  **Access Prefect UI**:
-    Open your Prefect Cloud or Server dashboard.
+## Required Configuration
 
-2.  **Navigate to Blocks**:
-    Click on the "Blocks" icon in the sidebar.
-
-3.  **Add a New Block**:
-    Click the "+" button to add a new block.
-
-4.  **Select Secret**:
-    Search for "Secret" and select the "Secret" block type (under System).
-
-5.  **Configure the Block**:
-    *   **Block Name**: `exchange-password` (This must match exactly).
-    *   **Value**: Enter your Exchange/Office 365 password.
-
-6.  **Save**:
-    Click "Create" to save the block.
+*   `EXCHANGE_USERNAME`: The email address of the account sending notifications (e.g., `user@company.com`).
+*   `EXCHANGE_PASSWORD`: The password for the Exchange account.
 
 ## Optional Configuration
 
-You can configure the sender email and Exchange EWS URL using environment variables:
-
-*   `EXCHANGE_USERNAME`: The email address of the account sending notifications (defaults to `user@company.com`).
 *   `EXCHANGE_EWS_URL`: The EWS endpoint URL (if autodiscover fails or is not used).
+*   `NOTIFICATION_EMAIL`: The recipient email address for notifications (defaults to `admin@company.com`).
 
-The recipient is configured via the application settings (`notification_email`).
+Note: Previous instructions to use a Prefect Secret block are deprecated. Please use environment variables for configuration.

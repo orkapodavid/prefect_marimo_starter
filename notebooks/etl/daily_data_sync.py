@@ -7,7 +7,7 @@ with app.setup:
     from prefect import task, flow
     import polars as pl
     from pathlib import Path
-    from src.shared_utils.notifications import notify_on_failure
+    from src.shared_utils.prefect_notifications import notify_on_failure
 
 # ============================================================
 # TASKS - Reusable units of work
