@@ -21,4 +21,11 @@ To enable Exchange notifications for flow failures, you must create a Prefect Se
 6.  **Save**:
     Click "Create" to save the block.
 
-Your workflow is now configured to load this password securely and send failure notifications via Exchange Web Services.
+## Optional Configuration
+
+You can configure the sender email and Exchange EWS URL using environment variables:
+
+*   `EXCHANGE_USERNAME`: The email address of the account sending notifications (defaults to `user@company.com`).
+*   `EXCHANGE_EWS_URL`: The EWS endpoint URL (if autodiscover fails or is not used).
+
+The recipient is configured via the application settings (`notification_email`).

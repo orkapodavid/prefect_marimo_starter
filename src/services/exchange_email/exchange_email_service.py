@@ -10,26 +10,35 @@ logger = logging.getLogger(__name__)
 
 
 class ExchangeEmailService:
-    def __init__(self, username: str, password: str, ews_url: str):
+    def __init__(self, username: str, password: str, ews_url: Optional[str] = None):
         """
-        Initialize the Exchange service with credentials and EWS URL.
+        Initialize the Exchange service with credentials and optional EWS URL.
+        If ews_url is None, autodiscover is used.
         """
         self.username = username
         self.password = password
         self.ews_url = ews_url
 
-        # Configure credentials and server
+        # Configure credentials
         self.credentials = Credentials(username=self.username, password=self.password)
-        self.config = Configuration(server=None, credentials=self.credentials)
-        self.config.service_endpoint = self.ews_url  # Manually set EWS URL to avoid autodiscover
 
         try:
-            self.account = Account(
-                primary_smtp_address=self.username,
-                config=self.config,
-                autodiscover=False,
-                access_type=DELEGATE,
-            )
+            if self.ews_url:
+                self.config = Configuration(server=None, credentials=self.credentials)
+                self.config.service_endpoint = self.ews_url
+                self.account = Account(
+                    primary_smtp_address=self.username,
+                    config=self.config,
+                    autodiscover=False,
+                    access_type=DELEGATE,
+                )
+            else:
+                self.account = Account(
+                    primary_smtp_address=self.username,
+                    credentials=self.credentials,
+                    autodiscover=True,
+                    access_type=DELEGATE,
+                )
             logger.info(f"Successfully connected to Exchange as {self.username}")
         except Exception as e:
             logger.error(f"Failed to connect to Exchange: {e}")
