@@ -1,13 +1,3 @@
-# /// script
-# requires-python = ">=3.12"
-# dependencies = [
-#     "marimo",
-#     "polars>=1.0.0",
-#     "prefect>=3.0.0",
-#     "sqlalchemy>=2.0.0",
-# ]
-# ///
-
 import marimo
 
 __generated_with = "0.18.4"
@@ -17,6 +7,7 @@ with app.setup:
     from prefect import task, flow
     import polars as pl
     from pathlib import Path
+    from src.shared_utils.prefect_notifications import notify_on_failure
 
 # ============================================================
 # TASKS - Reusable units of work
@@ -91,13 +82,15 @@ def load_to_destination(df: pl.DataFrame, dest_path: str) -> dict:
     return {"rows_loaded": len(df), "destination": dest_path}
 
 
+
+
 # ============================================================
 # FLOW - Main pipeline orchestration
 # ============================================================
 
 
 @app.function
-@flow(name="daily-data-sync", log_prints=True)
+@flow(name="daily-data-sync", log_prints=True, on_failure=[notify_on_failure])
 def run_daily_sync(
     source: str = "data/input/daily.parquet",
     destination: str = "data/output/synced.parquet",
@@ -198,7 +191,10 @@ def _(mo, run_daily_sync):
         environment = _os.environ.get("ENVIRONMENT", "dev")
 
         # Run the flow
-        run_daily_sync(source=source, destination=destination, environment=environment)
+        result = run_daily_sync(source=source, destination=destination, environment=environment)
+
+        # Explicitly print result for visibility in logs
+        print(f"Flow Result: {result}")
     return
 
 

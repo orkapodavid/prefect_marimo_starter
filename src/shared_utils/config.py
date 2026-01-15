@@ -39,6 +39,11 @@ class Settings(BaseSettings):
     notify_on_failure: bool = Field(default=True)
     notify_on_success: bool = Field(default=False)
 
+    # Exchange
+    exchange_username: str = Field(default="user@company.com")
+    exchange_password: str = Field(default="")
+    exchange_ews_url: str | None = Field(default=None)
+
     # MS SQL Dev
     dev_mssql_server: str = Field(default="localhost")
     dev_mssql_database: str = Field(default="dev_db")
