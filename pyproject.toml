@@ -20,6 +20,11 @@ dependencies = [
     "pymupdf>=1.23.0",
     "pdfplumber>=0.10.0",
     "requests>=2.31.0",
+    # TDnet and FEFTA module dependencies
+    "httpx>=0.28.1",
+    "lxml>=5.0.0",
+    "pypdf>=5.0.0",
+    "openpyxl>=3.1.5",
 ]
 
 [project.optional-dependencies]
@@ -45,9 +50,16 @@ target-version = "py312"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["."]
 markers = [
     "integration: Integration tests that may require external resources",
+    "smoke: Smoke tests that verify live endpoints with actual HTTP requests",
 ]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.2",
+]

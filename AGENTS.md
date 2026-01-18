@@ -366,6 +366,22 @@ marimo edit notebooks/<path>/<name>.py
 
 ---
 
+## Database Naming Conventions
+
+### Tables
+All tables must use the `tbl` prefix followed by `CamelCase` names.
+- ✅ `tblSearchDocuments`
+- ✅ `tblSearchCompanies`
+- ❌ `tbl_search_documents`
+- ❌ `search_documents`
+
+### Indexes
+Indexes should use the `idx` prefix followed by `CamelCase` names, often including the table name.
+- ✅ `idxTblSearchDocumentsPublishDate`
+- ❌ `idx_publish_date`
+
+---
+
 ## Quick Reference
 
 | Task | Command |

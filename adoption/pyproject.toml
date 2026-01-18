@@ -1,0 +1,36 @@
+[project]
+name = "market-intelligence"
+version = "0.1.0"
+description = "Market intelligence tools for scraping and analyzing financial disclosures from TDnet and FEFTA."
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "beautifulsoup4>=4.14.3",
+    "httpx>=0.28.1",
+    "lxml>=6.0.2",
+    "openpyxl>=3.1.5",
+    "pandas>=2.3.3",
+    "pydantic>=2.0",
+    "pypdf>=6.6.0",
+    "requests>=2.32.5",
+]
+
+[dependency-groups]
+dev = [
+    "anyio>=4.12.1",
+    "pytest>=9.0.2",
+    "pytest-asyncio>=1.3.0",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "integration: marks tests as integration tests (deselect with '-m \"not integration\"')",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/market_intelligence"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
