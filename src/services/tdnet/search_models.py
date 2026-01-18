@@ -9,15 +9,17 @@ class TdnetSearchEntry(BaseModel):
     Represents a single entry from TDnet Search results.
     """
 
-    date: DateType = Field(..., description="Date of the announcement")
-    datetime_str: str = Field(..., description="Original datetime string from table")
+    publish_date: DateType = Field(..., description="Date of the announcement")
+    publish_datetime: str = Field(..., description="Original datetime string from table")
     stock_code: str = Field(..., description="Stock code")
     company_name: str = Field(..., description="Company name")
     title: str = Field(..., description="Announcement title")
-    pdf_link: Optional[str] = Field(None, description="URL to PDF")
+    pdf_url: Optional[str] = Field(None, description="URL to PDF")
     description: Optional[str] = Field(None, description="Description/Summary")
     doc_id: Optional[str] = Field(None, description="Document ID")
     tier: Optional[str] = Field(None, description="Search tier matched")
+    pdf_downloaded: bool = Field(False, description="Whether PDF has been downloaded")
+    processed_at: Optional[datetime] = Field(None, description="When the record was processed")
 
     # Deal details (optional, from PDF extraction)
     investor: Optional[str] = Field(None, description="Allottee/Investor")

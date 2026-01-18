@@ -46,7 +46,7 @@ class TestTdnetSearchScraper(unittest.TestCase):
         self.assertEqual(results[0]["stock_code"], "12340")
         self.assertEqual(results[0]["company_name"], "Test Company")
         self.assertEqual(results[0]["title"], "Test Title")
-        self.assertEqual(results[0]["pdf_link"], "test.pdf")
+        self.assertEqual(results[0]["pdf_url"], "test.pdf")
         self.assertEqual(results[0]["description"], "Test Description")
 
     def test_extract_deal_details(self):

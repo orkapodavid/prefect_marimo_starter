@@ -136,7 +136,7 @@ class TdnetSearchScraper:
                         # Check if page has data older than start_date to stop early
                         page_dates = []
                         for r in results:
-                            d = self._parse_date_str(r["date"])
+                            d = self._parse_date_str(r["publish_date"])
                             if d:
                                 page_dates.append(d)
 
@@ -147,7 +147,7 @@ class TdnetSearchScraper:
                             break
 
                         for r in results:
-                            d = self._parse_date_str(r["date"])
+                            d = self._parse_date_str(r["publish_date"])
                             if d and start_date <= d <= end_date:
                                 valid_results.append(r)
                     else:
@@ -155,7 +155,7 @@ class TdnetSearchScraper:
 
                     for res_dict in valid_results:
                         # Unique key: datetime + stock_code + title
-                        key = f"{res_dict['datetime']}_{res_dict['stock_code']}_{res_dict['title']}"
+                        key = f"{res_dict['publish_datetime']}_{res_dict['stock_code']}_{res_dict['title']}"
                         if key not in seen_keys:
                             seen_keys.add(key)
 
@@ -164,17 +164,15 @@ class TdnetSearchScraper:
 
                             # Create model
                             try:
-                                # Rename datetime to datetime_str for model
-                                res_dict["datetime_str"] = res_dict.pop("datetime")
-
                                 entry = TdnetSearchEntry(**res_dict)
 
                                 # PDF Extraction
-                                if self.download_pdfs and entry.pdf_link and HAS_PYPDF:
+                                if self.download_pdfs and entry.pdf_url and HAS_PYPDF:
                                     pdf_text = self._download_and_extract_pdf(
-                                        entry.pdf_link, entry.doc_id
+                                        entry.pdf_url, entry.doc_id
                                     )
                                     if pdf_text:
+                                        entry.pdf_downloaded = True
                                         details = self._extract_deal_details(pdf_text)
                                         # Update entry with details
                                         for k, v in details.items():
@@ -260,12 +258,12 @@ class TdnetSearchScraper:
 
                     entries.append(
                         {
-                            "datetime": datetime_text,
-                            "date": date_obj,
+                            "publish_datetime": datetime_text,
+                            "publish_date": date_obj,
                             "stock_code": stock_code,
                             "company_name": company_name,
                             "title": title,
-                            "pdf_link": pdf_link,
+                            "pdf_url": pdf_link,
                             "description": description,
                             "doc_id": doc_id,
                         }
@@ -375,4 +373,4 @@ if __name__ == "__main__":
     result = scraper.scrape(start, end)
     print(f"Found {result.total_count} entries.")
     for entry in result.entries[:5]:
-        print(f"- {entry.date} {entry.company_name}: {entry.title}")
+        print(f"- {entry.publish_date} {entry.company_name}: {entry.title}")

@@ -27,7 +27,9 @@ class TDnetPDFBackfill:
             self.data = list(reader)
         self.stats["total"] = len(self.data)
         self.stats["missing_pdf"] = sum(
-            1 for row in self.data if not row.get("pdf_link", "").strip()
+            1
+            for row in self.data
+            if not (row.get("pdf_url", "").strip() or row.get("pdf_link", "").strip())
         )
         print(
             f"Loaded {self.stats['total']} entries, {self.stats['missing_pdf']} missing PDF links"
@@ -59,7 +61,7 @@ class TDnetPDFBackfill:
         # Get unique dates that need backfilling
         dates_to_check = set()
         for row in self.data:
-            if not row.get("pdf_link", "").strip():
+            if not (row.get("pdf_url", "").strip() or row.get("pdf_link", "").strip()):
                 date_str = row.get("date", "")
                 if date_str:
                     dates_to_check.add(date_str)
@@ -104,20 +106,29 @@ class TDnetPDFBackfill:
         # Match and backfill
         backfilled = 0
         for row in self.data:
-            if not row.get("pdf_link", "").strip():
+            if not (row.get("pdf_url", "").strip() or row.get("pdf_link", "").strip()):
                 date_str = row.get("date", "")
                 title = row.get("title", "")
 
                 if date_str in pdf_cache:
                     # Try exact title match
                     if title in pdf_cache[date_str]:
-                        row["pdf_link"] = pdf_cache[date_str][title]
+                        # Prefer pdf_url, fallback to pdf_link if key exists
+                        target_key = "pdf_url" if "pdf_url" in row else "pdf_link"
+                        # If neither exists (initial load might not have set it if missing), default to pdf_url
+                        if target_key not in row:
+                            target_key = "pdf_url"
+
+                        row[target_key] = pdf_cache[date_str][title]
                         backfilled += 1
                     else:
                         # Try partial match
                         for cached_title, pdf_url in pdf_cache[date_str].items():
                             if title[:30] in cached_title or cached_title[:30] in title:
-                                row["pdf_link"] = pdf_url
+                                target_key = "pdf_url" if "pdf_url" in row else "pdf_link"
+                                if target_key not in row:
+                                    target_key = "pdf_url"
+                                row[target_key] = pdf_url
                                 backfilled += 1
                                 break
 
@@ -138,7 +149,9 @@ class TDnetPDFBackfill:
 
         # Calculate final stats
         self.stats["still_missing"] = sum(
-            1 for row in self.data if not row.get("pdf_link", "").strip()
+            1
+            for row in self.data
+            if not (row.get("pdf_url", "").strip() or row.get("pdf_link", "").strip())
         )
 
         # Save results

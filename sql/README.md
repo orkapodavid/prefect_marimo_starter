@@ -109,3 +109,66 @@ CREATE TABLE [dealSourcing].[tblExample] (
 END
 GO
 ```
+
+## 7. CRUD SQL File Guidelines
+
+When writing SQL files for CRUD operations (e.g., in `sql/queries/`), adhere to the following structure and patterns.
+
+### Metadata Header
+
+Every SQL file **MUST** start with a YAML-formatted metadata block in a multi-line comment.
+
+```sql
+/*
+description: [Short description of the query's purpose]
+note: |
+  [Detailed notes, usage instructions, or warnings]
+  [Mention parameter replacements if any]
+version: 1.0.0
+*/
+```
+
+### Parameters Section
+
+Define parameters using a stylized comment block. Provide commented-out `DECLARE` statements for easy manual testing in SSMS/Azure Data Studio.
+
+```sql
+/*__PARAMETERS__*/
+-- Example parameters for manual execution (uncomment to run in SSMS):
+-- DECLARE @date_from DATE = '2026-01-01';
+-- DECLARE @date_to DATE = '2026-01-31';
+```
+
+### Query Structure
+
+1.  **Explicit Columns**: **NEVER** use `SELECT *`. List all required columns explicitly.
+2.  **Schema qualification**: Always use the fully qualified table name (e.g., `[dealSourcing].[tblAsxAnnouncement]`).
+3.  **NoLock**: Use `WITH (NOLOCK)` for all read-only queries to prevent blocking, unless strict consistency is required.
+4.  **Filtering**: Use standard SQL parameters (e.g., `@date_from`) in the `WHERE` clause.
+
+### Example Template
+
+```sql
+/*
+description: Query announcements within a date range
+note: |
+  Returns all announcements strictly between the provided dates.
+version: 1.0.0
+*/
+
+/*__PARAMETERS__*/
+-- DECLARE @date_from DATE = '2024-01-01';
+-- DECLARE @date_to DATE = '2024-01-31';
+
+SELECT
+  id,
+  ticker,
+  announcement_date,
+  title,
+  pdf_url,
+  created_time
+FROM [dealSourcing].[tblAsxAnnouncement] WITH (NOLOCK)
+WHERE announcement_date >= @date_from
+  AND announcement_date <= @date_to
+ORDER BY announcement_date DESC;
+```
