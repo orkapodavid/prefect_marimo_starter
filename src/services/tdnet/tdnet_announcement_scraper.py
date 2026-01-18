@@ -39,27 +39,12 @@ from .tdnet_announcement_helpers import (
     get_japanese_request_headers,
 )
 
+# Import exceptions from dedicated module
+from .tdnet_exceptions import TdnetScraperError, TdnetRequestError, TdnetParseError
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
-
-class TdnetScraperError(Exception):
-    """Base exception for TDnet scraper errors."""
-
-    pass
-
-
-class TdnetRequestError(TdnetScraperError):
-    """Raised when a request to TDnet fails."""
-
-    pass
-
-
-class TdnetParseError(TdnetScraperError):
-    """Raised when parsing TDnet HTML fails."""
-
-    pass
 
 
 class TdnetAnnouncementScraper:

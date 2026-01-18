@@ -1,8 +1,10 @@
 """
-Pytest Smoke Tests for TdnetAnnouncementScraper
-================================================
+TDnet Announcement Scraper Integration Tests
+=============================================
 
-Documentation: docs/TDNET_ANNOUNCEMENT_SCRAPER_GUIDE.md
+Integration tests for the TdnetAnnouncementScraper service.
+
+Documentation: docs/tdnet/TDNET_ANNOUNCEMENT_SCRAPER_GUIDE.md
 
 These tests verify the TdnetAnnouncementScraper service can:
 1. Successfully connect to TDnet and fetch announcements (English and Japanese)
@@ -10,7 +12,9 @@ These tests verify the TdnetAnnouncementScraper service can:
 3. Handle date ranges correctly for both languages
 4. Convert results to pandas DataFrame
 
-Run with: pytest tests/unit/tdnet/test_announcement_scraper.py -v
+Note: These tests make actual network requests and may be slow.
+
+Run with: pytest tests/unit/tdnet/test_tdnet_announcement_scraper.py -v -m integration
 """
 
 import pytest
@@ -20,270 +24,13 @@ import pandas as pd
 from src.services.tdnet.tdnet_announcement_scraper import (
     TdnetAnnouncementScraper,
     scrape_announcements,
-    TdnetScraperError,
 )
+from src.services.tdnet.tdnet_exceptions import TdnetScraperError
 from src.services.tdnet.tdnet_announcement_models import (
     TdnetAnnouncement,
     TdnetScrapeResult,
     TdnetLanguage,
 )
-from src.services.tdnet.tdnet_announcement_helpers import (
-    format_date_param,
-    parse_datetime_text,
-    validate_date_range,
-    split_date_range,
-    calculate_page_count,
-    build_request_payload,
-    # Japanese helpers
-    build_japanese_url,
-    parse_japanese_time_text,
-)
-
-
-# =============================================================================
-# Helper Function Tests
-# =============================================================================
-
-
-class TestHelperFunctions:
-    """Tests for tdnet_helpers module."""
-
-    def test_format_date_param(self):
-        """Test date formatting to YYYYMMDD."""
-        d = date(2026, 1, 15)
-        assert format_date_param(d) == "20260115"
-
-        d = date(2025, 12, 1)
-        assert format_date_param(d) == "20251201"
-
-    def test_parse_datetime_text(self):
-        """Test parsing datetime strings."""
-        dt, d = parse_datetime_text("2026/01/15 16:30")
-        assert dt.year == 2026
-        assert dt.month == 1
-        assert dt.day == 15
-        assert dt.hour == 16
-        assert dt.minute == 30
-        assert d == date(2026, 1, 15)
-
-    def test_parse_datetime_text_invalid(self):
-        """Test parsing invalid datetime strings."""
-        with pytest.raises(ValueError):
-            parse_datetime_text("invalid")
-
-    def test_validate_date_range_valid(self):
-        """Test valid date range validation."""
-        today = date.today()
-        yesterday = today - timedelta(days=1)
-
-        is_valid, msg = validate_date_range(yesterday, today)
-        assert is_valid is True
-
-    def test_validate_date_range_reversed(self):
-        """Test reversed date range validation."""
-        today = date.today()
-        yesterday = today - timedelta(days=1)
-
-        is_valid, msg = validate_date_range(today, yesterday)
-        assert is_valid is False
-        assert "before" in msg.lower()
-
-    def test_validate_date_range_exceeds_limit(self):
-        """Test date range exceeding 31 days."""
-        today = date.today()
-        long_ago = today - timedelta(days=60)
-
-        is_valid, msg = validate_date_range(long_ago, today)
-        assert is_valid is False
-        assert "exceeds" in msg.lower()
-
-    def test_split_date_range_short(self):
-        """Test splitting a short date range."""
-        start = date(2026, 1, 1)
-        end = date(2026, 1, 15)
-
-        chunks = split_date_range(start, end)
-        assert len(chunks) == 1
-        assert chunks[0] == (start, end)
-
-    def test_split_date_range_long(self):
-        """Test splitting a long date range."""
-        start = date(2026, 1, 1)
-        end = date(2026, 3, 1)  # ~60 days
-
-        chunks = split_date_range(start, end)
-        assert len(chunks) >= 2
-
-        # Verify chunks cover the full range
-        assert chunks[0][0] == start
-        assert chunks[-1][1] == end
-
-    def test_calculate_page_count(self):
-        """Test page count calculation."""
-        assert calculate_page_count(0) == 1
-        assert calculate_page_count(100) == 1
-        assert calculate_page_count(200) == 1
-        assert calculate_page_count(201) == 2
-        assert calculate_page_count(400) == 2
-        assert calculate_page_count(401) == 3
-
-    def test_build_request_payload(self):
-        """Test building request payload."""
-        payload = build_request_payload(date(2026, 1, 14), date(2026, 1, 15), page=2, query="test")
-
-        assert payload["t0"] == "20260114"
-        assert payload["t1"] == "20260115"
-        assert payload["p"] == "2"
-        assert payload["q"] == "test"
-
-
-# =============================================================================
-# Model Tests
-# =============================================================================
-
-
-class TestModels:
-    """Tests for tdnet_models module."""
-
-    def test_tdnet_announcement_creation(self):
-        """Test creating a TdnetAnnouncement."""
-        from datetime import datetime
-
-        ann = TdnetAnnouncement(
-            publish_datetime=datetime(2026, 1, 15, 16, 30),
-            publish_date=date(2026, 1, 15),
-            stock_code="40620",
-            company_name="IBIDEN CO.,LTD.",
-            sector="Electric Appliances",
-            title="Notice Concerning Tender Offer",
-            pdf_url="https://example.com/doc.pdf",
-            has_xbrl=False,
-            notes="",
-        )
-
-        assert ann.stock_code == "40620"
-        assert ann.company_name == "IBIDEN CO.,LTD."
-
-    def test_tdnet_announcement_stock_code_validation(self):
-        """Test stock code validation."""
-        from datetime import datetime
-
-        # Valid stock code (numeric)
-        ann = TdnetAnnouncement(
-            publish_datetime=datetime(2026, 1, 15, 16, 30),
-            publish_date=date(2026, 1, 15),
-            stock_code="1234",
-            company_name="Test",
-            sector="Test",
-            title="Test",
-        )
-        assert ann.stock_code == "1234"
-
-        # Valid stock code (alphanumeric, e.g. 477A0)
-        ann = TdnetAnnouncement(
-            publish_datetime=datetime(2026, 1, 15, 16, 30),
-            publish_date=date(2026, 1, 15),
-            stock_code="477A0",
-            company_name="Test",
-            sector="Test",
-            title="Test",
-        )
-        assert ann.stock_code == "477A0"
-
-        # Invalid stock code (contains symbols)
-        with pytest.raises(ValueError):
-            TdnetAnnouncement(
-                publish_datetime=datetime(2026, 1, 15, 16, 30),
-                publish_date=date(2026, 1, 15),
-                stock_code="477-A",
-                company_name="Test",
-                sector="Test",
-                title="Test",
-            )
-
-    def test_tdnet_announcement_notes_normalization(self):
-        """Test notes field normalization."""
-        from datetime import datetime
-
-        ann = TdnetAnnouncement(
-            publish_datetime=datetime(2026, 1, 15, 16, 30),
-            publish_date=date(2026, 1, 15),
-            stock_code="1234",
-            company_name="Test",
-            sector="Test",
-            title="Test",
-            notes="[Summary]",
-        )
-        assert ann.notes == "Summary"
-
-        ann2 = TdnetAnnouncement(
-            publish_datetime=datetime(2026, 1, 15, 16, 30),
-            publish_date=date(2026, 1, 15),
-            stock_code="1234",
-            company_name="Test",
-            sector="Test",
-            title="Test",
-            notes="〔Delayed〕",
-        )
-        assert ann2.notes == "Delayed"
-
-    def test_tdnet_announcement_to_dict(self):
-        """Test converting announcement to dictionary."""
-        from datetime import datetime
-
-        ann = TdnetAnnouncement(
-            publish_datetime=datetime(2026, 1, 15, 16, 30),
-            publish_date=date(2026, 1, 15),
-            stock_code="40620",
-            company_name="Test Company",
-            sector="Test Sector",
-            title="Test Title",
-        )
-
-        d = ann.to_dict()
-        assert isinstance(d, dict)
-        assert d["stock_code"] == "40620"
-        assert "publish_datetime" in d
-
-    def test_tdnet_scrape_result_empty(self):
-        """Test empty scrape result."""
-        result = TdnetScrapeResult(
-            start_date=date(2026, 1, 15), end_date=date(2026, 1, 15), announcements=[]
-        )
-
-        assert len(result) == 0
-        df = result.to_dataframe()
-        assert isinstance(df, pd.DataFrame)
-        assert len(df) == 0
-
-    def test_tdnet_scrape_result_to_list(self):
-        """Test converting scrape result to list."""
-        from datetime import datetime
-
-        ann = TdnetAnnouncement(
-            publish_datetime=datetime(2026, 1, 15, 16, 30),
-            publish_date=date(2026, 1, 15),
-            stock_code="40620",
-            company_name="Test",
-            sector="Test",
-            title="Test",
-        )
-
-        result = TdnetScrapeResult(
-            start_date=date(2026, 1, 15),
-            end_date=date(2026, 1, 15),
-            announcements=[ann],
-        )
-
-        data = result.to_list()
-        assert isinstance(data, list)
-        assert len(data) == 1
-        assert data[0]["stock_code"] == "40620"
-
-
-# =============================================================================
-# Integration / Smoke Tests (require network)
-# =============================================================================
 
 
 class TestScraperIntegration:
@@ -409,45 +156,6 @@ class TestScraperIntegration:
         print("\n✅ Context manager works correctly")
 
 
-# =============================================================================
-# Japanese Helper Function Tests
-# =============================================================================
-
-
-class TestJapaneseHelperFunctions:
-    """Tests for Japanese helper functions."""
-
-    def test_build_japanese_url(self):
-        """Test building Japanese URL."""
-        url = build_japanese_url(1, date(2026, 1, 16))
-        assert url == "https://www.release.tdnet.info/inbs/I_list_001_20260116.html"
-
-        url = build_japanese_url(5, date(2026, 1, 16))
-        assert url == "https://www.release.tdnet.info/inbs/I_list_005_20260116.html"
-
-    def test_parse_japanese_time_text(self):
-        """Test parsing Japanese time text."""
-        from datetime import datetime
-
-        dt = parse_japanese_time_text("16:30", date(2026, 1, 16))
-        assert dt == datetime(2026, 1, 16, 16, 30)
-
-        dt = parse_japanese_time_text("09:00", date(2026, 1, 16))
-        assert dt == datetime(2026, 1, 16, 9, 0)
-
-    def test_parse_japanese_time_text_invalid(self):
-        """Test parsing invalid Japanese time text."""
-        import pytest
-
-        with pytest.raises(ValueError):
-            parse_japanese_time_text("invalid", date(2026, 1, 16))
-
-
-# =============================================================================
-# Japanese Scraper Integration Tests
-# =============================================================================
-
-
 class TestJapaneseScraperIntegration:
     """
     Integration tests for Japanese TDnet scraper.
@@ -560,10 +268,6 @@ class TestJapaneseScraperIntegration:
 
         print("\n✅ Language attributes correctly set")
 
-
-# =============================================================================
-# Run tests
-# =============================================================================
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v", "--tb=short"])

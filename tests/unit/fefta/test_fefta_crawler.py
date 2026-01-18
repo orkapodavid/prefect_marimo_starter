@@ -1,11 +1,11 @@
 """
-FEFTA Crawler Smoke Tests
-=========================
+FEFTA Crawler Integration Tests
+===============================
 
-Smoke tests to verify the FEFTA crawler functionality.
+Integration tests for the FEFTA crawler.
 These tests perform real HTTP requests to the MOF website.
 
-Run with: pytest tests/unit/fefta/test_crawler.py -v
+Run with: pytest tests/unit/fefta/test_fefta_crawler.py -v
 """
 
 import pytest
@@ -16,10 +16,6 @@ from src.services.fefta import (
     FeftaCrawler,
     FeftaSource,
     FeftaRecord,
-    FeftaCrawlerError,
-    FeftaLinkNotFoundError,
-    FeftaDateParseError,
-    FeftaExcelParseError,
 )
 
 
@@ -39,102 +35,6 @@ def crawler():
 def output_dir(tmp_path):
     """Create a temporary output directory."""
     return tmp_path / "fefta_output"
-
-
-# =============================================================================
-# Unit Tests - Date Parsing
-# =============================================================================
-
-
-class TestDateParsing:
-    """Test the 'As of' date parsing functionality."""
-
-    def test_parse_as_of_date_standard_format(self, crawler):
-        """Test parsing standard date format: 'As of 15 July, 2025'."""
-        link_text = 'the "List of classifications..." FEFTA (As of 15 July, 2025)(Excel:296KB)'
-        as_of_raw, as_of_date = crawler._parse_as_of_date(link_text)
-
-        assert as_of_raw == "As of 15 July, 2025"
-        assert as_of_date == date(2025, 7, 15)
-
-    def test_parse_as_of_date_without_comma(self, crawler):
-        """Test parsing date without comma: 'As of 15 July 2025'."""
-        link_text = "FEFTA (As of 1 January 2026)(Excel:100KB)"
-        as_of_raw, as_of_date = crawler._parse_as_of_date(link_text)
-
-        assert as_of_date == date(2026, 1, 1)
-
-    def test_parse_as_of_date_abbreviated_month(self, crawler):
-        """Test parsing abbreviated month names."""
-        link_text = "FEFTA document (As of 5 Jan, 2025)"
-        as_of_raw, as_of_date = crawler._parse_as_of_date(link_text)
-
-        assert as_of_date == date(2025, 1, 5)
-
-    def test_parse_as_of_date_invalid_raises_error(self, crawler):
-        """Test that invalid date format raises FeftaDateParseError."""
-        link_text = "FEFTA document without date"
-
-        with pytest.raises(FeftaDateParseError):
-            crawler._parse_as_of_date(link_text)
-
-    def test_parse_as_of_date_invalid_month_raises_error(self, crawler):
-        """Test that unknown month name raises FeftaDateParseError."""
-        link_text = "FEFTA (As of 15 Smarch, 2025)"
-
-        with pytest.raises(FeftaDateParseError):
-            crawler._parse_as_of_date(link_text)
-
-
-# =============================================================================
-# Unit Tests - Circled Numeral Normalization
-# =============================================================================
-
-
-class TestCircledNumeralNormalization:
-    """Test the circled numeral to integer conversion."""
-
-    @pytest.mark.parametrize(
-        "circled,expected",
-        [
-            ("①", 1),
-            ("②", 2),
-            ("③", 3),
-            ("④", 4),
-            ("⑤", 5),
-            ("⑥", 6),
-            ("⑦", 7),
-            ("⑧", 8),
-            ("⑨", 9),
-            ("⑩", 10),
-        ],
-    )
-    def test_circled_numerals(self, crawler, circled, expected):
-        """Test all circled numerals map correctly."""
-        result = crawler._normalize_circled_numeral(circled, 0, "test")
-        assert result == expected
-
-    @pytest.mark.parametrize("plain_digit", ["1", "5", "10", "3.0"])
-    def test_plain_digits(self, crawler, plain_digit):
-        """Test plain digit strings are converted correctly."""
-        result = crawler._normalize_circled_numeral(plain_digit, 0, "test")
-        assert isinstance(result, int)
-        assert 1 <= result <= 10
-
-    def test_empty_value_raises_error(self, crawler):
-        """Test empty value raises FeftaExcelParseError."""
-        with pytest.raises(FeftaExcelParseError):
-            crawler._normalize_circled_numeral("", 0, "category")
-
-    def test_out_of_range_raises_error(self, crawler):
-        """Test out-of-range value raises FeftaExcelParseError."""
-        with pytest.raises(FeftaExcelParseError):
-            crawler._normalize_circled_numeral("15", 0, "category")
-
-    def test_invalid_value_raises_error(self, crawler):
-        """Test invalid value raises FeftaExcelParseError."""
-        with pytest.raises(FeftaExcelParseError):
-            crawler._normalize_circled_numeral("abc", 0, "category")
 
 
 # =============================================================================
@@ -260,7 +160,7 @@ class TestSmokeTest:
     Quick smoke test to verify basic functionality.
 
     Run this test to quickly check if the crawler is working:
-        pytest tests/unit/fefta/test_crawler.py::TestSmokeTest -v
+        pytest tests/unit/fefta/test_fefta_crawler.py::TestSmokeTest -v
     """
 
     @pytest.mark.integration
