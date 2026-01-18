@@ -26,9 +26,9 @@ The scraper is organized into a modular structure to promote code clarity, maint
 research/
 ├── src/services/tdnet/
 │   ├── __init__.py
-│   ├── announcement_scraper.py    # Main scraper service class
-│   ├── announcement_helpers.py    # Helper functions for parsing, validation, etc.
-│   └── announcement_models.py     # Pydantic data models
+│   ├── tdnet_announcement_scraper.py    # Main scraper service class
+│   ├── tdnet_announcement_helpers.py    # Helper functions for parsing, validation, etc.
+│   └── tdnet_announcement_models.py     # Pydantic data models
 ├── tests/
 │   └── test_tdnet_announcement_scraper.py  # Pytest smoke and unit tests
 └── docs/tdnet/
@@ -41,7 +41,7 @@ research/
 
 ```python
 from datetime import date, timedelta
-from services.tdnet.announcement_scraper import TdnetAnnouncementScraper
+from services.tdnet.tdnet_announcement_scraper import TdnetAnnouncementScraper
 
 # 1. Initialize the scraper (English by default)
 scraper = TdnetAnnouncementScraper(delay=1.0)
@@ -72,8 +72,8 @@ finally:
 
 ```python
 from datetime import date
-from services.tdnet.announcement_scraper import TdnetAnnouncementScraper
-from services.tdnet.announcement_models import TdnetLanguage
+from services.tdnet.tdnet_announcement_scraper import TdnetAnnouncementScraper
+from services.tdnet.tdnet_announcement_models import TdnetLanguage
 
 # 1. Initialize the scraper for Japanese
 scraper = TdnetAnnouncementScraper(
@@ -135,7 +135,7 @@ This is the main class for interacting with the service.
 | **Special Fields** | `sector` | `listed_exchange`, `xbrl_url` |
 | **Encoding** | UTF-8 | UTF-8 |
 
-## 5. Data Models (`announcement_models.py`)
+## 5. Data Models (`tdnet_announcement_models.py`)
 
 Data is structured using Pydantic models for validation and clarity.
 
@@ -183,7 +183,7 @@ This class also provides two helpful methods:
 - **`to_dataframe() -> pd.DataFrame`**: Converts the `announcements` list into a pandas DataFrame.
 - **`to_list() -> List[dict]`**: Converts the `announcements` list into a list of dictionaries.
 
-## 6. Helper Functions (`announcement_helpers.py`)
+## 6. Helper Functions (`tdnet_announcement_helpers.py`)
 
 This module contains utility functions used by the main scraper.
 

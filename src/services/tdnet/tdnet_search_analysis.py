@@ -2,7 +2,7 @@ from collections import defaultdict, Counter
 from typing import List, Dict, Any
 from datetime import datetime
 import json
-from .search_models import TdnetSearchEntry
+from .tdnet_search_models import TdnetSearchEntry
 
 
 class TDnetAnalyzer:

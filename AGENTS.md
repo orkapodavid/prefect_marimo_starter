@@ -413,14 +413,7 @@ When generating code for this project:
    - Project modules should be importable as installed packages (e.g., `from services.my_service import ...`).
    - Ensure the project is installed in editable mode (`pip install -e .`) or the `PYTHONPATH` includes the source root.
    - For notebooks, rely on the active environment where the project is installed.
+9. **File Naming Convention**
+   - Always prefix module-specific files with the folder name for easier code reading (e.g., `fefta/fefta_models.py` instead of `fefta/models.py`), also applicable for .md files. This avoids ambiguity when multiple files have the same generic name.
 
 ---
-
-## Model Context Protocol (MCP)
-
-This repository is designed to work with **MCP servers** for Marimo and Prefect to provide enhanced context to AI assistants.
-
-- **Marimo MCP**: Provides access to notebook state, active cells, and runtime variables.
-- **Prefect MCP**: Uses the `prefect` CLI to fetch deployment status, flow runs, and logs.
-
-Ensure your AI assistant (e.g., in Cursor or Claude Desktop) has these MCP servers configured for the best experience.

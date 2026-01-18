@@ -77,18 +77,20 @@ class TestTdnetSearchSmoke:
                 assert entry.stock_code, "stock_code is empty"
                 assert entry.company_name, "company_name is empty"
                 assert entry.title, "title is empty"
-                assert entry.date, "date is empty"
+                assert entry.publish_date, "publish_date is empty"
                 if entry.tier:
                     tiers_found.add(entry.tier)
 
             print(f"\n   Tiers matched: {tiers_found}")
             print(f"\n   Sample entries:")
             for entry in result.entries[:5]:
-                print(f"     {entry.date} | {entry.stock_code} | {entry.company_name[:20]}...")
+                print(
+                    f"     {entry.publish_date} | {entry.stock_code} | {entry.company_name[:20]}..."
+                )
                 print(f"       Title: {entry.title[:50]}...")
                 print(f"       Tier: {entry.tier}")
-                if entry.pdf_link:
-                    print(f"       PDF: {entry.pdf_link[:60]}...")
+                if entry.pdf_url:
+                    print(f"       PDF: {entry.pdf_url[:60]}...")
 
     @pytest.mark.smoke
     def test_search_with_narrower_date_range(self, scraper):
@@ -106,8 +108,8 @@ class TestTdnetSearchSmoke:
 
         # Verify date filtering
         for entry in result.entries:
-            assert start_date <= entry.date <= end_date, (
-                f"Entry date {entry.date} outside range [{start_date}, {end_date}]"
+            assert start_date <= entry.publish_date <= end_date, (
+                f"Entry date {entry.publish_date} outside range [{start_date}, {end_date}]"
             )
 
         print(f"\n✅ Narrow Date Range Verification:")
@@ -126,7 +128,7 @@ class TestTdnetSearchSmoke:
 
         result = scraper.scrape(start_date, end_date)
 
-        pdf_count = sum(1 for e in result.entries if e.pdf_link)
+        pdf_count = sum(1 for e in result.entries if e.pdf_url)
         no_pdf_count = len(result.entries) - pdf_count
 
         print(f"\n✅ PDF Link Verification:")
@@ -135,10 +137,10 @@ class TestTdnetSearchSmoke:
 
         # Check PDF URL structure
         for entry in result.entries[:5]:
-            if entry.pdf_link:
+            if entry.pdf_url:
                 # PDF links should be absolute URLs
-                assert entry.pdf_link.startswith("http"), f"Invalid PDF URL: {entry.pdf_link}"
-                print(f"   Sample PDF: {entry.pdf_link}")
+                assert entry.pdf_url.startswith("http"), f"Invalid PDF URL: {entry.pdf_url}"
+                print(f"   Sample PDF: {entry.pdf_url}")
 
     @pytest.mark.smoke
     def test_deal_details_extraction(self, scraper):

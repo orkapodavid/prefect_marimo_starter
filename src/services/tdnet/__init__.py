@@ -11,21 +11,21 @@ Usage:
     from services.tdnet import TdnetSearchScraper
 """
 
-from .announcement_models import (
+from .tdnet_announcement_models import (
     TdnetLanguage,
     TdnetAnnouncement,
     TdnetScrapeResult,
     AnnouncementNoteType,
 )
-from .announcement_scraper import (
+from .tdnet_announcement_scraper import (
     TdnetAnnouncementScraper,
     TdnetScraperError,
     TdnetRequestError,
     TdnetParseError,
     scrape_announcements,
 )
-from .search_models import TdnetSearchEntry, TdnetSearchResult
-from .search_scraper import TdnetSearchScraper
+from .tdnet_search_models import TdnetSearchEntry, TdnetSearchResult
+from .tdnet_search_scraper import TdnetSearchScraper
 
 __all__ = [
     # Announcement scraper

@@ -17,17 +17,17 @@ import pytest
 from datetime import date, timedelta
 import pandas as pd
 
-from src.services.tdnet.announcement_scraper import (
+from src.services.tdnet.tdnet_announcement_scraper import (
     TdnetAnnouncementScraper,
     scrape_announcements,
     TdnetScraperError,
 )
-from src.services.tdnet.announcement_models import (
+from src.services.tdnet.tdnet_announcement_models import (
     TdnetAnnouncement,
     TdnetScrapeResult,
     TdnetLanguage,
 )
-from src.services.tdnet.announcement_helpers import (
+from src.services.tdnet.tdnet_announcement_helpers import (
     format_date_param,
     parse_datetime_text,
     validate_date_range,

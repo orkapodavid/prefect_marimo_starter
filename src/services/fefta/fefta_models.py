@@ -11,6 +11,40 @@ from typing import Optional
 from pydantic import BaseModel, Field, field_validator
 
 
+# =============================================================================
+# Exceptions
+# =============================================================================
+
+
+class FeftaCrawlerError(Exception):
+    """Base exception for FEFTA crawler errors."""
+
+    pass
+
+
+class FeftaLinkNotFoundError(FeftaCrawlerError):
+    """Raised when no FEFTA Excel link is found on the page."""
+
+    pass
+
+
+class FeftaDateParseError(FeftaCrawlerError):
+    """Raised when the 'As of' date cannot be parsed from link text."""
+
+    pass
+
+
+class FeftaExcelParseError(FeftaCrawlerError):
+    """Raised when Excel parsing fails."""
+
+    pass
+
+
+# =============================================================================
+# Models
+# =============================================================================
+
+
 class FeftaSource(BaseModel):
     """
     Metadata about the FEFTA Excel source file.

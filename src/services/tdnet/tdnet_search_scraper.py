@@ -20,7 +20,7 @@ from typing import List, Optional, Set, Dict, Any
 from bs4 import BeautifulSoup
 from urllib.parse import quote
 
-from .search_models import TdnetSearchEntry, TdnetSearchResult
+from .tdnet_search_models import TdnetSearchEntry, TdnetSearchResult
 
 # Configure logging
 logger = logging.getLogger(__name__)

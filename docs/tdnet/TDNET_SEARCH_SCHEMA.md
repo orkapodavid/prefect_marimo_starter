@@ -1,6 +1,6 @@
 # TDnet Search Schema Documentation
 
-This document explains the relationship between the SQL database tables (located in `sql/tdnet/search`) and the Pydantic models (located in `adoption/src/tdnet/search_models.py`).
+This document explains the relationship between the SQL database tables (located in `sql/tdnet/search`) and the Pydantic models (located in `src/services/tdnet/tdnet_search_models.py`).
 
 ## Database Schema Overview
 

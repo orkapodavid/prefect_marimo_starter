@@ -22,8 +22,8 @@ from typing import Optional, List, Callable
 import requests
 from requests.exceptions import RequestException
 
-from .announcement_models import TdnetAnnouncement, TdnetScrapeResult, TdnetLanguage
-from .announcement_helpers import (
+from .tdnet_announcement_models import TdnetAnnouncement, TdnetScrapeResult, TdnetLanguage
+from .tdnet_announcement_helpers import (
     TDNET_SEARCH_ENDPOINT,
     MAX_DATE_RANGE_DAYS,
     build_request_payload,

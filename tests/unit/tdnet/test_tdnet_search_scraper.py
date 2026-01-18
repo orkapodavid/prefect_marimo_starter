@@ -3,8 +3,8 @@ from unittest.mock import MagicMock, patch
 import os
 import shutil
 from datetime import date, datetime
-from src.services.tdnet.search_scraper import TdnetSearchScraper
-from src.services.tdnet.search_models import TdnetSearchEntry, TdnetSearchResult
+from src.services.tdnet.tdnet_search_scraper import TdnetSearchScraper
+from src.services.tdnet.tdnet_search_models import TdnetSearchEntry, TdnetSearchResult
 
 
 class TestTdnetSearchScraper(unittest.TestCase):
@@ -16,7 +16,7 @@ class TestTdnetSearchScraper(unittest.TestCase):
         if os.path.exists(self.test_dir):
             shutil.rmtree(self.test_dir)
 
-    @patch("src.services.tdnet.search_scraper.requests.Session.get")
+    @patch("src.services.tdnet.tdnet_search_scraper.requests.Session.get")
     def test_fetch_page(self, mock_get):
         mock_response = MagicMock()
         mock_response.status_code = 200
@@ -66,7 +66,7 @@ class TestTdnetSearchScraper(unittest.TestCase):
         self.assertEqual(details["deal_date"], "2025/1/1")
         self.assertEqual(details["deal_structure"], "Common Stock")
 
-    @patch("src.services.tdnet.search_scraper.TdnetSearchScraper._fetch_page")
+    @patch("src.services.tdnet.tdnet_search_scraper.TdnetSearchScraper._fetch_page")
     def test_scrape(self, mock_fetch):
         # Mock HTML response
         html = """

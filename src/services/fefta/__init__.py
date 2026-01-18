@@ -13,14 +13,15 @@ Usage:
     source, records = crawler.run()
 """
 
-from .models import FeftaSource, FeftaRecord
-from .fefta_crawler import (
-    FeftaCrawler,
+from .fefta_models import (
+    FeftaSource,
+    FeftaRecord,
     FeftaCrawlerError,
     FeftaLinkNotFoundError,
     FeftaDateParseError,
     FeftaExcelParseError,
 )
+from .fefta_crawler import FeftaCrawler
 
 __all__ = [
     "FeftaCrawler",

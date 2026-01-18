@@ -1,13 +1,13 @@
 # TDnet Search Scraper Technical Guide
 
 ## Overview
-This guide covers the technical implementation, architecture, and maintenance of the TDnet Search Scraper suite (`src/tdnet/search_*.py`). This suite provides targeted scraping for "Third-Party Allotment" announcements, data analysis, and PDF backfilling capabilities.
+This guide covers the technical implementation, architecture, and maintenance of the TDnet Search Scraper suite (`src/services/tdnet/tdnet_search_*.py`). This suite provides targeted scraping for "Third-Party Allotment" announcements, data analysis, and PDF backfilling capabilities.
 
 ## 1. System Architecture
 
 The project uses a modular architecture with three specialized components in `src/tdnet/`:
 
-### A. TdnetSearchScraper (`search_scraper.py`)
+### A. TdnetSearchScraper (`tdnet_search_scraper.py`)
 *   **Purpose**: Core scraping engine for third-party allotment announcements.
 *   **Data Source**: TDnet Search (https://tdnet-search.appspot.com)
 *   **Key Features**:
@@ -21,7 +21,7 @@ The project uses a modular architecture with three specialized components in `sr
     result = scraper.scrape(start_date=..., end_date=...)
     ```
 
-### B. TDnetAnalyzer (`search_analysis.py`)
+### B. TDnetAnalyzer (`tdnet_search_analysis.py`)
 *   **Purpose**: Analysis and reporting on scraped datasets.
 *   **Capabilities**:
     *   **Company Activity**: Ranks top issuers.
@@ -35,7 +35,7 @@ The project uses a modular architecture with three specialized components in `sr
     TDnetAnalyzer.analyze_by_company(results)
     ```
 
-### C. TDnetPDFBackfill (`search_backfill.py`)
+### C. TDnetPDFBackfill (`tdnet_search_backfill.py`)
 *   **Purpose**: Recover missing PDF links for existing metadata entries.
 *   **Stragegy**:
     *   **TDnet Official Archive**: Scrapes daily lists from `release.tdnet.info` to find matching PDFs (works for recent ~30 days).
@@ -55,7 +55,7 @@ The project uses a modular architecture with three specialized components in `sr
 
 ## 3. Search Strategy (Tiers)
 
-The scraper uses a tiered text search to balance precision and recall. See `SEARCH_OPTIMIZATION.md` for full query details.
+The scraper uses a tiered text search to balance precision and recall. See `TDNET_SEARCH_OPTIMIZATION.md` for full query details.
 
 | Tier | Focus | Key Query Patterns |
 |------|-------|-------------------|
@@ -87,4 +87,4 @@ The scraper writes results incrementally but does not have a formal "resume" fil
 3.  **Backfill Limitations**: The "TDnet Official Archive" strategy only works for the last ~30 days. Older definitions require manual research or paid APIs.
 
 ### Adding New Search Terms
-Update the `SEARCH_TERMS` dictionary in `src/tdnet/search_scraper.py`. Ensure you assign a new Tier key if needed.
+Update the `SEARCH_TERMS` dictionary in `src/services/tdnet/tdnet_search_scraper.py`. Ensure you assign a new Tier key if needed.
