@@ -17,6 +17,7 @@ from src.services.fefta import (
     FeftaSource,
     FeftaRecord,
 )
+from src.services.fefta.fefta_excel_parser import parse_fefta_excel
 
 
 # =============================================================================
@@ -93,7 +94,7 @@ class TestFeftaCrawlerIntegration:
         with FeftaCrawler(output_dir=output_dir) as crawler:
             source = crawler.fetch_latest_source()
             source = crawler.download_excel(source)
-            records, df = crawler.parse_records(source.saved_path)
+            records, df = parse_fefta_excel(source.saved_path)
 
             # Verify records
             assert len(records) > 0
@@ -153,67 +154,3 @@ class TestFeftaCrawlerIntegration:
 # =============================================================================
 # Smoke Test - Quick Verification
 # =============================================================================
-
-
-class TestSmokeTest:
-    """
-    Quick smoke test to verify basic functionality.
-
-    Run this test to quickly check if the crawler is working:
-        pytest tests/unit/fefta/test_fefta_crawler.py::TestSmokeTest -v
-    """
-
-    @pytest.mark.integration
-    def test_smoke_crawl_fefta(self, tmp_path):
-        """
-        Smoke test: Verify the crawler can fetch, download, and parse
-        FEFTA data from the MOF website.
-        """
-        output_dir = tmp_path / "fefta"
-
-        print("\n" + "=" * 60)
-        print("FEFTA CRAWLER SMOKE TEST")
-        print("=" * 60)
-
-        with FeftaCrawler(output_dir=output_dir) as crawler:
-            # Step 1: Fetch source metadata
-            print("\n[1/3] Fetching source metadata from MOF...")
-            source = crawler.fetch_latest_source()
-            print(f"  ✓ Found FEFTA Excel link")
-            print(f"  ✓ As of: {source.as_of_date}")
-            print(f"  ✓ URL: {source.file_url[:60]}...")
-
-            # Step 2: Download Excel
-            print("\n[2/3] Downloading Excel file...")
-            source = crawler.download_excel(source)
-            file_size = Path(source.saved_path).stat().st_size
-            print(f"  ✓ Saved to: {source.saved_path}")
-            print(f"  ✓ Size: {file_size:,} bytes")
-
-            # Step 3: Parse records
-            print("\n[3/3] Parsing Excel records...")
-            records, df = crawler.parse_records(source.saved_path)
-            print(f"  ✓ Parsed {len(records)} company records")
-            print(f"  ✓ DataFrame shape: {df.shape}")
-
-            # Summary
-            print("\n" + "-" * 60)
-            print("SMOKE TEST PASSED ✓")
-            print("-" * 60)
-            print(f"Total Companies: {len(records)}")
-            print(f"Data As Of: {source.as_of_date}")
-            print(f"Downloaded: {source.download_date}")
-
-            # Assertions
-            assert len(records) > 100, "Expected at least 100 company records"
-            assert source.saved_path is not None
-            assert Path(source.saved_path).exists()
-
-            # Sample output
-            print("\nSample Records:")
-            for r in records[:5]:
-                print(
-                    f"  {r.securities_code} | {r.isin_code} | "
-                    f"{r.company_name_ja[:15]}... | "
-                    f"cat={r.category} core={r.core_operator}"
-                )

@@ -21,7 +21,6 @@ from pathlib import Path
 from typing import List, Tuple, Optional
 
 import httpx
-import pandas as pd
 from bs4 import BeautifulSoup
 
 from .fefta_models import (
@@ -198,21 +197,6 @@ class FeftaCrawler:
             saved_path=str(save_path.absolute()),
         )
 
-    def parse_records(self, saved_path: str) -> Tuple[List[FeftaRecord], pd.DataFrame]:
-        """
-        Parse the FEFTA Excel file and extract company records.
-
-        Args:
-            saved_path: Absolute path to the downloaded Excel file
-
-        Returns:
-            Tuple of (list of FeftaRecord, raw DataFrame)
-
-        Raises:
-            FeftaExcelParseError: If parsing fails
-        """
-        return parse_fefta_excel(saved_path)
-
     def run(self) -> Tuple[FeftaSource, List[FeftaRecord]]:
         """
         End-to-end orchestration: fetch source → download → parse.
@@ -232,7 +216,7 @@ class FeftaCrawler:
         source = self.download_excel(source)
 
         # Step 3: Parse records
-        records, _ = self.parse_records(source.saved_path)
+        records, _ = parse_fefta_excel(source.saved_path)
 
         return source, records
 

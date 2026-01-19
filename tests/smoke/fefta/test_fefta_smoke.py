@@ -19,6 +19,7 @@ from src.services.fefta import (
     FeftaSource,
     FeftaRecord,
 )
+from src.services.fefta.fefta_excel_parser import parse_fefta_excel
 
 # Output directory for downloaded files
 OUTPUTS_DIR = Path(__file__).parent.parent.parent / "outputs" / "fefta"
@@ -105,7 +106,7 @@ class TestFeftaCrawlerSmoke:
         print(f"   Size: {file_size:,} bytes")
 
         # Parse records
-        records, df = crawler.parse_records(source.saved_path)
+        records, df = parse_fefta_excel(source.saved_path)
 
         # Basic count check
         assert len(records) > 100, f"Expected >100 records, got {len(records)}"
