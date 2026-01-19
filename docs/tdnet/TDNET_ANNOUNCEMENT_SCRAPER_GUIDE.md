@@ -23,16 +23,36 @@ The scraper is organized into a modular structure to promote code clarity, maint
 
 ### File Structure
 ```
-research/
-├── src/services/tdnet/
-│   ├── __init__.py
-│   ├── tdnet_announcement_scraper.py    # Main scraper service class
-│   ├── tdnet_announcement_helpers.py    # Helper functions for parsing, validation, etc.
-│   └── tdnet_announcement_models.py     # Pydantic data models
-├── tests/
-│   └── test_tdnet_announcement_scraper.py  # Pytest smoke and unit tests
-└── docs/tdnet/
-    └── TDNET_ANNOUNCEMENT_SCRAPER_GUIDE.md  # This documentation
+src/services/tdnet/
+├── __init__.py                        # Package exports
+├── tdnet_exceptions.py                # Exception hierarchy
+├── tdnet_announcement_scraper.py      # Main scraper service class
+├── tdnet_announcement_helpers.py      # Helper functions for parsing, validation
+├── tdnet_announcement_models.py       # Pydantic data models
+├── tdnet_search_scraper.py            # Search scraper for 3rd-party allotments
+├── tdnet_search_constants.py          # Search constants and tier definitions
+├── tdnet_search_helpers.py            # Search parsing and extraction helpers
+├── tdnet_search_models.py             # Search result models
+├── tdnet_search_analysis.py           # Analysis utilities
+└── tdnet_search_backfill.py           # PDF backfill utilities
+
+tests/
+├── unit/tdnet/
+│   ├── conftest.py                    # Shared test fixtures
+│   ├── test_tdnet_announcement_scraper.py  # Integration tests
+│   ├── test_tdnet_helpers.py          # Helper function tests
+│   ├── test_tdnet_models.py           # Model tests
+│   ├── test_tdnet_search_helpers.py   # Search helper tests
+│   └── test_tdnet_search_scraper.py   # Search scraper tests
+└── smoke/tdnet/
+    ├── test_tdnet_announcement_smoke.py
+    └── test_tdnet_search_smoke.py
+
+docs/tdnet/
+├── TDNET_ANNOUNCEMENT_SCRAPER_GUIDE.md  # This documentation
+├── TDNET_SCRAPER_TECHNICAL_GUIDE.md     # Search scraper guide
+├── TDNET_SEARCH_OPTIMIZATION.md         # Search query optimization
+└── TDNET_SEARCH_SCHEMA.md               # Database schema
 ```
 
 ## 3. How to Use

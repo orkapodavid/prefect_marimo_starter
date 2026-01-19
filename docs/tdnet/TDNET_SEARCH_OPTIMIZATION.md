@@ -54,20 +54,20 @@ To maximize recall while maintaining precision, the scraper implements a "Tiered
 ### Basic Search
 ```python
 from datetime import date
-from services.tdnet.search_scraper import TdnetSearchScraper
+from src.services.tdnet import TdnetSearchScraper
 
 scraper = TdnetSearchScraper()
 result = scraper.scrape(start_date=date.today(), end_date=date.today())
 
 print(f"Found {result.total_count} entries")
 for entry in result.entries:
-    print(f"{entry.date}: {entry.title}")
+    print(f"{entry.publish_date}: {entry.title}")
 ```
 
 ### Enhanced Analysis (with PDF download)
 ```python
 from datetime import date
-from services.tdnet.search_scraper import TdnetSearchScraper
+from src.services.tdnet import TdnetSearchScraper
 
 # Enable PDF download to extract deal details
 scraper = TdnetSearchScraper(download_pdfs=True, output_dir="./data/pdfs")
@@ -77,3 +77,20 @@ for entry in result.entries:
     if entry.deal_size:
         print(f"Deal: {entry.company_name} - {entry.deal_size} {entry.deal_size_currency}")
 ```
+
+### Using Helper Functions Directly
+```python
+from src.services.tdnet.tdnet_search_helpers import (
+    extract_deal_details,
+    parse_date_str,
+)
+
+# Parse a date string
+d = parse_date_str("2026/01/15")  # Returns date(2026, 1, 15)
+
+# Extract deal details from PDF text
+details = extract_deal_details(pdf_text)
+print(f"Investor: {details.get('investor')}")
+print(f"Deal Size: {details.get('deal_size')}")
+```
+
