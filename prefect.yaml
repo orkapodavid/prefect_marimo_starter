@@ -34,7 +34,7 @@ definitions:
 # Generic pull step for all deployments (avoids "remote storage" prompts)
 pull:
   - prefect.deployments.steps.set_working_directory:
-      directory: .
+      directory: C:\Users\orkap\Desktop\Programming\prefect_marimo_starter
 
 deployments:
   - name: daily-data-sync-dev
@@ -110,3 +110,56 @@ deployments:
     work_pool: *windows_pool
     schedules:
       - *asx_appendix5b_times
+
+  # TDnet Announcement Scraper Deployments
+  - name: tdnet-announcement-scraper-en-daily
+    entrypoint: notebooks/tdnet/tdnet_announcement_scraper.py:run_tdnet_scraper
+    description: "TDnet English announcements - Daily scrape"
+    tags: [prod, tdnet, english]
+    parameters:
+      language: "english"
+      period: "today"
+      output_dir: "./data/output/tdnet_announcements"
+      output_format: "csv"
+    work_pool: *windows_pool
+    schedules:
+      - cron: "0 18 * * 1-5"
+        timezone: "Asia/Tokyo"
+
+  - name: tdnet-announcement-scraper-en-backfill
+    entrypoint: notebooks/tdnet/tdnet_announcement_scraper.py:run_tdnet_scraper
+    description: "TDnet English announcements - Backfill past month (manual trigger)"
+    tags: [dev, tdnet, english, backfill]
+    parameters:
+      language: "english"
+      period: "month"
+      output_dir: "./data/output/tdnet_announcements"
+      output_format: "csv"
+    work_pool: *windows_pool
+    schedules: []
+
+  - name: tdnet-announcement-scraper-jp-daily
+    entrypoint: notebooks/tdnet/tdnet_announcement_scraper.py:run_tdnet_scraper
+    description: "TDnet Japanese announcements - Daily scrape"
+    tags: [prod, tdnet, japanese]
+    parameters:
+      language: "japanese"
+      period: "today"
+      output_dir: "./data/output/tdnet_announcements"
+      output_format: "csv"
+    work_pool: *windows_pool
+    schedules:
+      - cron: "0 18 * * 1-5"
+        timezone: "Asia/Tokyo"
+
+  - name: tdnet-announcement-scraper-jp-backfill
+    entrypoint: notebooks/tdnet/tdnet_announcement_scraper.py:run_tdnet_scraper
+    description: "TDnet Japanese announcements - Backfill past month (manual trigger)"
+    tags: [dev, tdnet, japanese, backfill]
+    parameters:
+      language: "japanese"
+      period: "month"
+      output_dir: "./data/output/tdnet_announcements"
+      output_format: "csv"
+    work_pool: *windows_pool
+    schedules: []
