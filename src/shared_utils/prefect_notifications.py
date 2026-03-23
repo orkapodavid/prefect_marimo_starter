@@ -2,8 +2,8 @@ import logging
 import os
 from typing import Optional
 
-from src.services.exchange_email.exchange_email_service import ExchangeEmailService
-from src.shared_utils.config import get_settings
+from services.exchange_email.exchange_email_service import ExchangeEmailService
+from shared_utils.config import get_settings
 
 logger = logging.getLogger(__name__)
 

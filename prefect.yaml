@@ -69,6 +69,22 @@ deployments:
       - cron: "0 7 * * *"
         timezone: "Asia/Hong_Kong"
 
+  - name: pg-backup-daily
+    entrypoint: notebooks/maintenance/maintenance_pg_backup.py:run_pg_backup
+    description: "Daily PostgreSQL logical backup"
+    tags: [prod, maintenance, postgres, backup]
+    parameters:
+      database: "workflow_app"
+      backup_dir: "D:/Backups/postgres"
+      retention_days: 30
+      compression_level: 6
+      verify_restore: true
+      dry_run: false
+    work_pool: *windows_pool
+    schedules:
+      - cron: "0 2 * * *"
+        timezone: "Asia/Hong_Kong"
+
   # ASX Scraper Deployments
   - name: asx-pipe-scraper-daily
     entrypoint: notebooks/asx/asx_pipe_scraper.py:run_pipe_scraper

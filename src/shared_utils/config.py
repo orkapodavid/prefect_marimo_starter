@@ -1,13 +1,17 @@
 """Configuration management for workflows."""
 
-from pathlib import Path
 from functools import lru_cache
-from pydantic_settings import BaseSettings
+import os
+from pathlib import Path
+
 from pydantic import Field
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
     """Application settings loaded from environment."""
+
+    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 
     # App Info
     app_name: str = Field(default="Prefect Marimo Workflows")
@@ -56,9 +60,48 @@ class Settings(BaseSettings):
     prod_mssql_username: str = Field(default="prod_user")
     prod_mssql_password: str = Field(default="prod_pass")
 
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
+    # PostgreSQL Backup
+    pg_backup_host: str = Field(default="localhost")
+    pg_backup_port: int = Field(default=5432)
+    pg_backup_user: str = Field(default="backup_user")
+    pg_backup_password: str = Field(default="")
+    pg_backup_password_block_name: str | None = Field(default=None)
+    pg_backup_database: str = Field(default="postgres")
+    pg_backup_output_dir: Path = Field(default=Path("./data/backups/postgres"))
+    pg_backup_retention_days: int = Field(default=30)
+    pg_backup_schedule_cron: str = Field(default="0 2 * * *")
+    pg_backup_timezone: str = Field(default="Asia/Hong_Kong")
+    pg_backup_compression_level: int = Field(default=6)
+    pg_backup_connect_timeout_seconds: int = Field(default=15)
+    pg_backup_timeout_seconds: int = Field(default=3600)
+    pg_backup_min_free_space_gb: int = Field(default=5)
+
+
+def resolve_pg_backup_password(settings: Settings | None = None) -> str:
+    """Resolve the PostgreSQL backup password without logging secrets."""
+    settings = settings or get_settings()
+
+    if settings.pg_backup_password_block_name:
+        from prefect.blocks.system import Secret
+
+        password = Secret.load(settings.pg_backup_password_block_name).get()
+        if password:
+            return password
+
+    if settings.pg_backup_password:
+        return settings.pg_backup_password
+
+    if os.getenv("PG_BACKUP_PASSWORD"):
+        return os.environ["PG_BACKUP_PASSWORD"]
+
+    fallback_settings = get_settings()
+    if fallback_settings.pg_backup_password:
+        return fallback_settings.pg_backup_password
+
+    raise ValueError(
+        "PostgreSQL backup password is not configured. Set "
+        "`pg_backup_password_block_name` or `PG_BACKUP_PASSWORD`."
+    )
 
 
 @lru_cache
