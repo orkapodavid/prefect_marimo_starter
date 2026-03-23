@@ -16,7 +16,7 @@ class Settings(BaseSettings):
     log_level: str = Field(default="INFO")
 
     # Database
-    database_url: str = Field(default="sqlite:///data/workflow.db")
+    database_url: str = Field(default="postgresql://localhost:5432/workflow_app")
     db_pool_size: int = Field(default=5)
 
     # Prefect
