@@ -16,12 +16,22 @@ def _changed_events(parsed_events: list[dict]) -> list[dict]:
 
 
 def _build_message(
-    parsed_events: list[dict],
+    changed_events: list[dict],
     environment: str,
     run_label: str,
     artifact_path: str,
 ) -> str:
-    changed_events = _changed_events(parsed_events)
+    if not changed_events:
+        return "\n".join(
+            [
+                f"IR monitor completed with no changes detected in {environment}",
+                f"Run: {run_label}",
+                "Changed companies: 0",
+                "Changed targets: 0",
+                f"Artifacts: {artifact_path}",
+            ]
+        )
+
     grouped_events = group_events_by_company(changed_events)
     lines = [
         f"IR monitor changes detected in {environment}",
@@ -50,8 +60,8 @@ def notify_if_needed(
     if not changed_events and not notify_on_no_change:
         return NotificationResult(sent=False, channel="none", message="")
 
-    message = _build_message(parsed_events, environment, run_label, artifact_path)
-    if changed_events and webhook_url:
+    message = _build_message(changed_events, environment, run_label, artifact_path)
+    if webhook_url:
         try:
             response = requests.post(
                 webhook_url,
