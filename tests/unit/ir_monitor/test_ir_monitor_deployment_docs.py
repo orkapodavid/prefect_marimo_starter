@@ -1,5 +1,7 @@
 from pathlib import Path
 
+import yaml
+
 
 def test_prefect_yaml_contains_ir_monitor_deployment():
     prefect_yaml = Path("prefect.yaml").read_text(encoding="utf-8")
@@ -28,3 +30,16 @@ def test_ir_monitor_docs_reference_runtime_section_and_optional_selector_fields(
     assert "selector_type" in config_doc
     assert "defaults are merged onto every target" not in config_doc
     assert "runtime:" in spec_doc
+
+
+def test_ir_monitor_example_config_uses_runtime_section_for_runtime_keys():
+    example_config = yaml.safe_load(
+        Path("config/ir_monitor/ir_monitor_targets.example.yaml").read_text(encoding="utf-8")
+    )
+
+    assert example_config["runtime"]["notify_on_no_change"] is False
+    assert example_config["runtime"]["workspace_dir"] == "./data/ir_monitor/prod"
+    assert example_config["runtime"]["schedule_cron"] == "0 * * * 1-5"
+    assert "notify_on_no_change" not in example_config["defaults"]
+    assert "workspace_dir" not in example_config["defaults"]
+    assert "schedule_cron" not in example_config["defaults"]

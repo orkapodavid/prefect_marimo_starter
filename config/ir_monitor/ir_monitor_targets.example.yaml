@@ -8,12 +8,14 @@ companies:
     ticker: STLA.VN
     exchange: HOSE
 
-defaults:
-  timezone: Asia/Tokyo
-  report_timezone: Asia/Tokyo
+runtime:
   notify_on_no_change: false
   workspace_dir: ./data/ir_monitor/prod
   schedule_cron: "0 * * * 1-5"
+
+defaults:
+  timezone: Asia/Tokyo
+  report_timezone: Asia/Tokyo
 
 targets:
   - id: mitsubishi_corp_ir_ja
