@@ -1,5 +1,13 @@
 # IR Monitor Config Surface Simplification Implementation Plan
 
+> **Status:** COMPLETE
+> **Completed:** 2026-03-24
+> **Total tasks:** 5
+> **Tasks completed:** 5
+> **Deviations:** 1 (documented inline)
+> **Test count:** 49 tests, all passing
+> **Blocking issues:** None
+
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
 **Goal:** Simplify the IR monitor configuration contract by separating runtime settings from per-target defaults and by narrowing target schema fields to the selector modes the current implementation actually supports.
@@ -53,6 +61,8 @@ targets:
     assert config.runtime.schedule_cron == "0 * * * 1-5"
     assert not hasattr(config.targets[0], "notify_on_no_change")
 ```
+
+> **Actual:** The runtime-loader tests include `selector_type: custom_script` in their YAML fixtures so they fail only on the missing `runtime` contract. Without that, the pre-existing required-selector validation would have obscured the intended red-phase failure until Task 3.
 
 ```python
 def test_load_monitor_config_normalizes_legacy_runtime_keys_from_defaults(tmp_path: Path):
@@ -389,4 +399,3 @@ Document any deviations inline with `> **Actual:**`.
 git add plans/2026-03-24-prefect-webchanges-config-surface-implementation-plan.md
 git commit -m "docs: update ir monitor config surface plan with outcomes"
 ```
-
