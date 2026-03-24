@@ -3,23 +3,13 @@
 import json
 from pathlib import Path
 
-from services.ir_monitor.ir_monitor_display import company_display_name
+from services.ir_monitor.ir_monitor_display import group_events_by_company
 from services.ir_monitor.ir_monitor_models import ArtifactPaths
-
-
-def _group_events_by_company(parsed_events: list[dict]) -> dict[str, list[dict]]:
-    grouped: dict[str, list[dict]] = {}
-    for event in parsed_events:
-        grouped.setdefault(
-            company_display_name(event["company_name"], event.get("ticker", "")),
-            [],
-        ).append(event)
-    return grouped
 
 
 def _build_markdown(parsed_events: list[dict], run_label: str) -> str:
     lines = [f"# IR Monitor Summary {run_label}", ""]
-    grouped_events = _group_events_by_company(parsed_events)
+    grouped_events = group_events_by_company(parsed_events)
 
     for company_name in sorted(grouped_events):
         lines.append(f"## {company_name}")

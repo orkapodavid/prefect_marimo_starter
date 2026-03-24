@@ -5,7 +5,7 @@ import logging
 
 import requests
 
-from services.ir_monitor.ir_monitor_display import company_display_name
+from services.ir_monitor.ir_monitor_display import group_events_by_company
 from services.ir_monitor.ir_monitor_models import NotificationResult
 
 LOGGER = logging.getLogger(__name__)
@@ -22,21 +22,18 @@ def _build_message(
     artifact_path: str,
 ) -> str:
     changed_events = _changed_events(parsed_events)
-    changed_companies = sorted(
-        {company_display_name(event["company_name"], event.get("ticker", "")) for event in changed_events}
-    )
+    grouped_events = group_events_by_company(changed_events)
     lines = [
         f"IR monitor changes detected in {environment}",
         f"Run: {run_label}",
-        f"Changed companies: {len(changed_companies)}",
+        f"Changed companies: {len(grouped_events)}",
         f"Changed targets: {len(changed_events)}",
         f"Artifacts: {artifact_path}",
     ]
-    for company_name in changed_companies:
+    for company_name in sorted(grouped_events):
         lines.append(f"- {company_name}")
-        for event in changed_events:
-            if company_display_name(event["company_name"], event.get("ticker", "")) == company_name:
-                lines.append(f"  {event['page_label']} ({event['target_id']})")
+        for event in grouped_events[company_name]:
+            lines.append(f"  {event['page_label']} ({event['target_id']})")
     return "\n".join(lines)
 
 
