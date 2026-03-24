@@ -78,6 +78,25 @@ with app.setup:
             if target.enabled
         }
 
+    def _resolve_workspace_dir(
+        config: MonitorConfig,
+        environment: str,
+        workspace_dir: str | None = None,
+    ) -> Path:
+        if workspace_dir:
+            return Path(workspace_dir)
+        if config.runtime.workspace_dir is not None:
+            return config.runtime.workspace_dir
+        return SETTINGS.ir_monitor_workspace_dir / environment
+
+    def _resolve_notify_on_no_change(
+        config: MonitorConfig,
+        notify_on_no_change: bool | None = None,
+    ) -> bool:
+        if notify_on_no_change is not None:
+            return notify_on_no_change
+        return config.runtime.notify_on_no_change
+
 
 # ============================================================
 # TASKS
@@ -99,10 +118,10 @@ def prepare_workspace(
     workspace_dir: str | None = None,
 ) -> WorkspacePaths:
     """Resolve and prepare the durable workspace."""
-    resolved_workspace_dir = (
-        Path(workspace_dir)
-        if workspace_dir
-        else SETTINGS.ir_monitor_workspace_dir / environment
+    resolved_workspace_dir = _resolve_workspace_dir(
+        config=config,
+        environment=environment,
+        workspace_dir=workspace_dir,
     )
     return build_workspace_files(config=config, workspace_dir=resolved_workspace_dir)
 
@@ -180,11 +199,12 @@ def write_artifacts(
 @app.function
 @task(retries=2, retry_delay_seconds=30)
 def notify_if_needed(
+    config: MonitorConfig,
     parsed_report: ParsedMonitorReport,
     artifact_paths: ArtifactPaths,
     environment: str,
     run_label: str,
-    notify_on_no_change: bool = False,
+    notify_on_no_change: bool | None = None,
 ) -> NotificationResult:
     """Send content notifications only when needed."""
     return notify_if_needed_service(
@@ -193,7 +213,10 @@ def notify_if_needed(
         run_label=run_label,
         artifact_path=str(artifact_paths.changes_markdown_path),
         webhook_url=SETTINGS.ir_monitor_webhook_url,
-        notify_on_no_change=notify_on_no_change,
+        notify_on_no_change=_resolve_notify_on_no_change(
+            config=config,
+            notify_on_no_change=notify_on_no_change,
+        ),
     )
 
 
@@ -208,7 +231,7 @@ def run_ir_webchanges_monitor(
     config_path: str = "./config/ir_monitor/ir_monitor_targets.yaml",
     environment: str = "dev",
     workspace_dir: str | None = None,
-    notify_on_no_change: bool = False,
+    notify_on_no_change: bool | None = None,
     dry_run: bool = False,
 ) -> dict:
     """Monitor configured IR pages with webchanges and summarize the run."""
@@ -246,6 +269,7 @@ def run_ir_webchanges_monitor(
         environment=environment,
     )
     notification_result = notify_if_needed(
+        config=config,
         parsed_report=parsed_report,
         artifact_paths=artifact_paths,
         environment=environment,

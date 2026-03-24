@@ -19,3 +19,10 @@ def test_ir_monitor_notebook_contains_required_flow_contract():
     assert '"exchange": target.exchange' in notebook_text
     assert 'mo.app_meta().mode == "edit"' in notebook_text
     assert 'mo.app_meta().mode == "script"' in notebook_text
+
+
+def test_ir_monitor_notebook_uses_config_runtime_fallbacks():
+    notebook_text = Path("notebooks/ir/ir_webchanges_monitor.py").read_text(encoding="utf-8")
+
+    assert "config.runtime.workspace_dir" in notebook_text
+    assert "config.runtime.notify_on_no_change" in notebook_text
