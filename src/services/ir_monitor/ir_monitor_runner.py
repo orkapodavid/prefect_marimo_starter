@@ -29,8 +29,14 @@ def _build_command(workspace: WorkspacePaths, extra_args: list[str] | None = Non
 
 def _write_baseline_metadata(path: Path, new_target_ids: list[str]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
+    existing_target_ids: list[str] = []
+    if path.exists():
+        existing_payload = json.loads(path.read_text(encoding="utf-8"))
+        existing_target_ids = existing_payload.get("baseline_target_ids", [])
+
+    merged_target_ids = sorted(set(existing_target_ids) | set(new_target_ids))
     path.write_text(
-        json.dumps({"baseline_target_ids": new_target_ids}, ensure_ascii=False, indent=2),
+        json.dumps({"baseline_target_ids": merged_target_ids}, ensure_ascii=False, indent=2),
         encoding="utf-8",
     )
 
