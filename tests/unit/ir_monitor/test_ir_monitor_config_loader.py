@@ -65,3 +65,98 @@ targets:
 
     with pytest.raises(ValueError):
         load_monitor_config(config_path)
+
+
+def test_load_monitor_config_resolves_company_registry_metadata_onto_targets(tmp_path: Path):
+    config_path = tmp_path / "targets.yaml"
+    config_path.write_text(
+        """
+companies:
+  mitsubishi_corp:
+    name: Mitsubishi Corporation
+    ticker: 8058.T
+    exchange: TSE
+defaults:
+  timezone: Asia/Tokyo
+  report_timezone: Asia/Tokyo
+targets:
+  - id: mitsubishi_corp_ir_ja
+    company_id: mitsubishi_corp
+    page_label: Japanese IR page
+    page_url: https://example.com/ir
+    user_visible_url: https://example.com/ir
+    target_kind: html_list
+    selector_type: custom_script
+    normalizer: generic_jp_ir_news
+    enabled: true
+""",
+        encoding="utf-8",
+    )
+
+    config = load_monitor_config(config_path)
+
+    assert config.companies["mitsubishi_corp"].name == "Mitsubishi Corporation"
+    assert config.targets[0].company_name == "Mitsubishi Corporation"
+    assert config.targets[0].ticker == "8058.T"
+    assert config.targets[0].exchange == "TSE"
+
+
+def test_load_monitor_config_keeps_target_company_name_without_company_registry(tmp_path: Path):
+    config_path = tmp_path / "targets.yaml"
+    config_path.write_text(
+        """
+targets:
+  - id: stellapharm_news_en
+    company_id: stellapharm
+    company_name: Stella Pharma
+    page_label: All Stella News
+    page_url: https://example.com/news
+    user_visible_url: https://example.com/news
+    target_kind: html_list
+    selector_type: custom_script
+    normalizer: generic_en_ir_news
+    language: en
+    enabled: true
+""",
+        encoding="utf-8",
+    )
+
+    config = load_monitor_config(config_path)
+
+    assert config.targets[0].company_name == "Stella Pharma"
+    assert config.targets[0].ticker == ""
+    assert config.targets[0].exchange == ""
+
+
+def test_load_monitor_config_company_registry_overrides_conflicting_target_company_name(
+    tmp_path: Path,
+):
+    config_path = tmp_path / "targets.yaml"
+    config_path.write_text(
+        """
+companies:
+  stellapharm:
+    name: Stella Pharma
+    ticker: STLA.VN
+    exchange: HOSE
+targets:
+  - id: stellapharm_news_en
+    company_id: stellapharm
+    company_name: Old Company Name
+    page_label: All Stella News
+    page_url: https://example.com/news
+    user_visible_url: https://example.com/news
+    target_kind: html_list
+    selector_type: custom_script
+    normalizer: generic_en_ir_news
+    language: en
+    enabled: true
+""",
+        encoding="utf-8",
+    )
+
+    config = load_monitor_config(config_path)
+
+    assert config.targets[0].company_name == "Stella Pharma"
+    assert config.targets[0].ticker == "STLA.VN"
+    assert config.targets[0].exchange == "HOSE"

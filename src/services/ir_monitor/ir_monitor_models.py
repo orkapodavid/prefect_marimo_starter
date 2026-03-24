@@ -16,12 +16,22 @@ class MonitorDefaults(BaseModel):
     schedule_cron: str | None = None
 
 
+class CompanyEntry(BaseModel):
+    """A company registry entry shared by one or more monitor targets."""
+
+    name: str
+    ticker: str = ""
+    exchange: str = ""
+
+
 class MonitorTarget(BaseModel):
     """A single monitored IR target."""
 
     id: str
     company_id: str
-    company_name: str
+    company_name: str = ""
+    ticker: str = ""
+    exchange: str = ""
     page_label: str
     page_url: str
     user_visible_url: str
@@ -51,6 +61,7 @@ class MonitorTarget(BaseModel):
 class MonitorConfig(BaseModel):
     """Top-level IR monitor configuration."""
 
+    companies: dict[str, CompanyEntry] = Field(default_factory=dict)
     defaults: MonitorDefaults = Field(default_factory=MonitorDefaults)
     targets: list[MonitorTarget] = Field(default_factory=list)
 
@@ -80,6 +91,8 @@ class MonitorChangeEvent(BaseModel):
 
     company_id: str
     company_name: str
+    ticker: str = ""
+    exchange: str = ""
     target_id: str
     page_label: str
     status: str
