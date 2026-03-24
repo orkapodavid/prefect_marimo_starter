@@ -134,3 +134,20 @@ class ParsedMonitorReport(BaseModel):
     failed_target_ids: list[str] = Field(default_factory=list)
     baseline_target_ids: list[str] = Field(default_factory=list)
     raw_report: str = ""
+
+
+class ArtifactPaths(BaseModel):
+    """Paths to generated artifact files for a run."""
+
+    run_dir: Path
+    raw_report_path: Path
+    changes_json_path: Path
+    changes_markdown_path: Path
+
+
+class NotificationResult(BaseModel):
+    """Outcome of a notification attempt."""
+
+    sent: bool
+    channel: str
+    message: str
