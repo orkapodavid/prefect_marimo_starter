@@ -111,7 +111,7 @@ class TestFeftaCrawlerIntegration:
 
             print(f"\nParsed {len(records)} records")
             print(f"DataFrame shape: {df.shape}")
-            print(f"\nFirst record:")
+            print("\nFirst record:")
             print(f"  Securities Code: {first.securities_code}")
             print(f"  ISIN: {first.isin_code}")
             print(f"  Company (JP): {first.company_name_ja}")
@@ -134,7 +134,7 @@ class TestFeftaCrawlerIntegration:
             assert len(records) > 0
             assert all(isinstance(r, FeftaRecord) for r in records)
 
-            print(f"\n=== FEFTA Crawler Full Run ===")
+            print("\n=== FEFTA Crawler Full Run ===")
             print(f"As of: {source.as_of_date}")
             print(f"Downloaded: {source.download_date}")
             print(f"File URL: {source.file_url}")
@@ -142,7 +142,7 @@ class TestFeftaCrawlerIntegration:
             print(f"Total records: {len(records)}")
 
             # Show sample records
-            print(f"\nSample records:")
+            print("\nSample records:")
             for i, record in enumerate(records[:3]):
                 print(
                     f"  {i + 1}. {record.securities_code} - "

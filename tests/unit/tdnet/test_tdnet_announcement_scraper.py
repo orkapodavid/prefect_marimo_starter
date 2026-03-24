@@ -25,7 +25,6 @@ from src.services.tdnet.tdnet_announcement_scraper import (
     TdnetAnnouncementScraper,
     scrape_announcements,
 )
-from src.services.tdnet.tdnet_exceptions import TdnetScraperError
 from src.services.tdnet.tdnet_announcement_models import (
     TdnetAnnouncement,
     TdnetScrapeResult,
@@ -235,7 +234,7 @@ class TestJapaneseScraperIntegration:
                 xbrl_count += 1
 
         if len(result) > 0:
-            print(f"\n📊 Japanese field analysis:")
+            print("\n📊 Japanese field analysis:")
             print(f"   Exchanges found: {exchanges_found}")
             print(f"   XBRL downloads: {xbrl_count}")
 
@@ -251,7 +250,7 @@ class TestJapaneseScraperIntegration:
             sample_titles = [ann.title for ann in result.announcements[:5]]
             sample_companies = [ann.company_name for ann in result.announcements[:5]]
 
-            print(f"\n📝 Sample Japanese content:")
+            print("\n📝 Sample Japanese content:")
             for i, (title, company) in enumerate(zip(sample_titles, sample_companies)):
                 print(f"   {i + 1}. {company}: {title[:50]}...")
 

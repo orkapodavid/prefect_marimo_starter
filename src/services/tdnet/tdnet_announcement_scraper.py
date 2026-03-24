@@ -40,7 +40,7 @@ from .tdnet_announcement_helpers import (
 )
 
 # Import exceptions from dedicated module
-from .tdnet_exceptions import TdnetScraperError, TdnetRequestError, TdnetParseError
+from .tdnet_exceptions import TdnetRequestError, TdnetParseError
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

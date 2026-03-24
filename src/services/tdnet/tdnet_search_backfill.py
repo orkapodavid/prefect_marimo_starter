@@ -2,7 +2,6 @@ import csv
 import time
 import requests
 import os
-from datetime import datetime, timedelta
 from typing import List
 from bs4 import BeautifulSoup
 

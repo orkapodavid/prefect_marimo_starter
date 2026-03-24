@@ -4,7 +4,6 @@ import hashlib
 import importlib
 import os
 from datetime import datetime, timedelta
-from pathlib import Path
 
 import pytest
 

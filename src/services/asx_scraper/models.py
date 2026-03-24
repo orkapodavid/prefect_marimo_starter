@@ -4,7 +4,6 @@ Pydantic models for ASX scraper data structures.
 
 from typing import List, Optional, Union
 from pydantic import BaseModel, Field, ConfigDict
-from datetime import datetime
 
 
 class Company(BaseModel):

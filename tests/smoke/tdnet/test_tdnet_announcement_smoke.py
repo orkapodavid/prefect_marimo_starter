@@ -67,7 +67,7 @@ class TestTdnetAnnouncementSmoke:
         assert result.language == TdnetLanguage.ENGLISH
         assert result.total_count >= 0
 
-        print(f"\n✅ English TDnet Scrape Verification:")
+        print("\n✅ English TDnet Scrape Verification:")
         print(f"   Date range: {yesterday} to {today}")
         print(f"   Total reported: {result.total_count}")
         print(f"   Announcements scraped: {len(result.announcements)}")
@@ -83,7 +83,7 @@ class TestTdnetAnnouncementSmoke:
                 assert ann.publish_date, "publish_date is empty"
                 assert ann.language == TdnetLanguage.ENGLISH
 
-            print(f"\n   Sample announcements:")
+            print("\n   Sample announcements:")
             for ann in result.announcements[:3]:
                 print(f"     {ann.stock_code} | {ann.company_name[:25]}... | {ann.title[:40]}...")
 
@@ -109,7 +109,7 @@ class TestTdnetAnnouncementSmoke:
         assert result.end_date == today
         assert result.language == TdnetLanguage.JAPANESE
 
-        print(f"\n✅ Japanese TDnet Scrape Verification:")
+        print("\n✅ Japanese TDnet Scrape Verification:")
         print(f"   Date: {today}")
         print(f"   Total: {result.total_count}")
         print(f"   Pages scraped: {result.page_count}")
@@ -123,7 +123,7 @@ class TestTdnetAnnouncementSmoke:
                     exchanges_found.add(ann.listed_exchange)
 
             print(f"\n   Exchanges found: {exchanges_found}")
-            print(f"\n   Sample Japanese announcements:")
+            print("\n   Sample Japanese announcements:")
             for ann in result.announcements[:3]:
                 print(f"     {ann.stock_code} | {ann.company_name[:15]}... | {ann.listed_exchange}")
 
@@ -149,7 +149,7 @@ class TestTdnetAnnouncementSmoke:
         for col in expected_cols:
             assert col in df.columns, f"Missing column: {col}"
 
-        print(f"\n✅ DataFrame Conversion Verification:")
+        print("\n✅ DataFrame Conversion Verification:")
         print(f"   Shape: {df.shape}")
         print(f"   Columns: {list(df.columns)}")
         print(f"   Dtypes:\n{df.dtypes}")

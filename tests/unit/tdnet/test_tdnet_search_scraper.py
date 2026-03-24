@@ -9,7 +9,7 @@ import unittest
 from unittest.mock import MagicMock, patch
 import os
 import shutil
-from datetime import date, datetime
+from datetime import date
 from src.services.tdnet.tdnet_search_scraper import TdnetSearchScraper
 from src.services.tdnet.tdnet_search_models import TdnetSearchEntry, TdnetSearchResult
 from src.services.tdnet.tdnet_search_helpers import (
