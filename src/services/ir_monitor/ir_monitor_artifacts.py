@@ -6,10 +6,18 @@ from pathlib import Path
 from services.ir_monitor.ir_monitor_models import ArtifactPaths
 
 
+def _company_display_name(event: dict) -> str:
+    ticker = event.get("ticker", "")
+    company_name = event["company_name"]
+    if ticker:
+        return f"{company_name} ({ticker})"
+    return company_name
+
+
 def _group_events_by_company(parsed_events: list[dict]) -> dict[str, list[dict]]:
     grouped: dict[str, list[dict]] = {}
     for event in parsed_events:
-        grouped.setdefault(event["company_name"], []).append(event)
+        grouped.setdefault(_company_display_name(event), []).append(event)
     return grouped
 
 

@@ -14,6 +14,14 @@ def _changed_events(parsed_events: list[dict]) -> list[dict]:
     return [event for event in parsed_events if event.get("status") == "changed"]
 
 
+def _company_display_name(event: dict) -> str:
+    ticker = event.get("ticker", "")
+    company_name = event["company_name"]
+    if ticker:
+        return f"{company_name} ({ticker})"
+    return company_name
+
+
 def _build_message(
     parsed_events: list[dict],
     environment: str,
@@ -21,7 +29,7 @@ def _build_message(
     artifact_path: str,
 ) -> str:
     changed_events = _changed_events(parsed_events)
-    changed_companies = sorted({event["company_name"] for event in changed_events})
+    changed_companies = sorted({_company_display_name(event) for event in changed_events})
     lines = [
         f"IR monitor changes detected in {environment}",
         f"Run: {run_label}",
@@ -32,7 +40,7 @@ def _build_message(
     for company_name in changed_companies:
         lines.append(f"- {company_name}")
         for event in changed_events:
-            if event["company_name"] == company_name:
+            if _company_display_name(event) == company_name:
                 lines.append(f"  {event['page_label']} ({event['target_id']})")
     return "\n".join(lines)
 

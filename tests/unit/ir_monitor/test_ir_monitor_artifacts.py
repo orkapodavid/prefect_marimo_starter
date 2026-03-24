@@ -11,6 +11,7 @@ def test_write_run_artifacts_creates_company_grouped_outputs(tmp_path: Path):
             {
                 "company_id": "mitsubishi_corp",
                 "company_name": "Mitsubishi Corporation",
+                "ticker": "8058.T",
                 "target_id": "mitsubishi_corp_ir_ja",
                 "page_label": "Japanese IR page",
                 "status": "changed",
@@ -20,6 +21,7 @@ def test_write_run_artifacts_creates_company_grouped_outputs(tmp_path: Path):
             {
                 "company_id": "nagase",
                 "company_name": "NAGASE & Co., Ltd.",
+                "ticker": "",
                 "target_id": "nagase_ir_en",
                 "page_label": "English IR page",
                 "status": "baseline_initialized",
@@ -35,5 +37,7 @@ def test_write_run_artifacts_creates_company_grouped_outputs(tmp_path: Path):
     assert artifact_paths.raw_report_path.exists()
     assert artifact_paths.changes_json_path.exists()
     assert artifact_paths.changes_markdown_path.exists()
-    assert "Mitsubishi Corporation" in markdown
+    assert "## Mitsubishi Corporation (8058.T)" in markdown
+    assert "## NAGASE & Co., Ltd." in markdown
+    assert "## NAGASE & Co., Ltd. (" not in markdown
     assert "baseline_initialized" in markdown

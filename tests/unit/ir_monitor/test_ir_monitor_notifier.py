@@ -33,6 +33,7 @@ def test_notify_if_needed_falls_back_to_log_only_without_webhook():
             {
                 "company_id": "mitsubishi_corp",
                 "company_name": "Mitsubishi Corporation",
+                "ticker": "8058.T",
                 "target_id": "mitsubishi_corp_ir_ja",
                 "page_label": "Japanese IR page",
                 "status": "changed",
@@ -49,6 +50,7 @@ def test_notify_if_needed_falls_back_to_log_only_without_webhook():
 
     assert result.sent is False
     assert result.channel == "log"
+    assert "- Mitsubishi Corporation (8058.T)" in result.message
 
 
 def test_notify_if_needed_falls_back_to_log_only_when_webhook_fails(mocker):
@@ -62,6 +64,7 @@ def test_notify_if_needed_falls_back_to_log_only_when_webhook_fails(mocker):
             {
                 "company_id": "mitsubishi_corp",
                 "company_name": "Mitsubishi Corporation",
+                "ticker": "8058.T",
                 "target_id": "mitsubishi_corp_ir_ja",
                 "page_label": "Japanese IR page",
                 "status": "changed",
