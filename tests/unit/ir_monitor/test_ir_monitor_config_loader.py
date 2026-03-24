@@ -185,3 +185,70 @@ targets:
 
     with pytest.raises(ValueError, match="company_name"):
         load_monitor_config(config_path)
+
+
+def test_load_monitor_config_reads_runtime_section_without_merging_into_targets(
+    tmp_path: Path,
+):
+    config_path = tmp_path / "targets.yaml"
+    config_path.write_text(
+        """
+runtime:
+  notify_on_no_change: true
+  workspace_dir: ./data/ir_monitor/staging
+  schedule_cron: "0 * * * 1-5"
+defaults:
+  timezone: Asia/Tokyo
+targets:
+  - id: mitsubishi_corp_ir_ja
+    company_id: mitsubishi_corp
+    company_name: Mitsubishi Corporation
+    page_label: Japanese IR page
+    page_url: https://example.com/ir
+    user_visible_url: https://example.com/ir
+    target_kind: html_list
+    selector_type: custom_script
+    normalizer: generic_jp_ir_news
+    enabled: true
+""",
+        encoding="utf-8",
+    )
+
+    config = load_monitor_config(config_path)
+
+    assert config.runtime.notify_on_no_change is True
+    assert str(config.runtime.workspace_dir).endswith("data/ir_monitor/staging")
+    assert config.runtime.schedule_cron == "0 * * * 1-5"
+    assert not hasattr(config.targets[0], "notify_on_no_change")
+
+
+def test_load_monitor_config_normalizes_legacy_runtime_keys_from_defaults(
+    tmp_path: Path,
+):
+    config_path = tmp_path / "targets.yaml"
+    config_path.write_text(
+        """
+defaults:
+  timezone: Asia/Tokyo
+  notify_on_no_change: true
+  workspace_dir: ./data/ir_monitor/legacy
+targets:
+  - id: legacy_target
+    company_id: legacy_company
+    company_name: Legacy Company
+    page_label: Legacy page
+    page_url: https://example.com/legacy
+    user_visible_url: https://example.com/legacy
+    target_kind: html_list
+    selector_type: custom_script
+    normalizer: generic_en_ir_news
+    enabled: true
+""",
+        encoding="utf-8",
+    )
+
+    config = load_monitor_config(config_path)
+
+    assert config.runtime.notify_on_no_change is True
+    assert str(config.runtime.workspace_dir).endswith("data/ir_monitor/legacy")
+    assert config.targets[0].timezone == "Asia/Tokyo"

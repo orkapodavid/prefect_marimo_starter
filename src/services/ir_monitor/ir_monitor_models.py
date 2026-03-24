@@ -11,6 +11,11 @@ class MonitorDefaults(BaseModel):
 
     timezone: str = "Asia/Tokyo"
     report_timezone: str = "Asia/Tokyo"
+
+
+class MonitorRuntime(BaseModel):
+    """Runtime settings that apply to a monitor run, not individual targets."""
+
     notify_on_no_change: bool = False
     workspace_dir: Path | None = None
     schedule_cron: str | None = None
@@ -62,6 +67,7 @@ class MonitorConfig(BaseModel):
     """Top-level IR monitor configuration."""
 
     companies: dict[str, CompanyEntry] = Field(default_factory=dict)
+    runtime: MonitorRuntime = Field(default_factory=MonitorRuntime)
     defaults: MonitorDefaults = Field(default_factory=MonitorDefaults)
     targets: list[MonitorTarget] = Field(default_factory=list)
 

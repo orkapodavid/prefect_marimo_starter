@@ -6,6 +6,12 @@ import yaml
 
 from services.ir_monitor.ir_monitor_models import CompanyEntry, MonitorConfig
 
+LEGACY_RUNTIME_KEYS = {
+    "notify_on_no_change",
+    "workspace_dir",
+    "schedule_cron",
+}
+
 
 def load_monitor_config(config_path: Path) -> MonitorConfig:
     """Read, merge defaults, and validate the monitor configuration."""
@@ -15,7 +21,13 @@ def load_monitor_config(config_path: Path) -> MonitorConfig:
         company_id: CompanyEntry.model_validate(company_payload)
         for company_id, company_payload in companies_payload.items()
     }
-    defaults = payload.get("defaults", {})
+    defaults = dict(payload.get("defaults", {}))
+    runtime = dict(payload.get("runtime", {}))
+    for key in LEGACY_RUNTIME_KEYS:
+        if key in defaults and key not in runtime:
+            runtime[key] = defaults.pop(key)
+        else:
+            defaults.pop(key, None)
     targets = payload.get("targets", [])
 
     merged_targets = []
@@ -31,6 +43,7 @@ def load_monitor_config(config_path: Path) -> MonitorConfig:
     return MonitorConfig.model_validate(
         {
             "companies": companies,
+            "runtime": runtime,
             "defaults": defaults,
             "targets": merged_targets,
         }
