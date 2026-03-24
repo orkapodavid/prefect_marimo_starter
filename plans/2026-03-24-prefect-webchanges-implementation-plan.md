@@ -958,6 +958,8 @@ Constraints:
 - do not change the normalizers, webchanges runner, or jobs builder
 - keep targets keyed by `company_id` and resolve display identity from the registry when present
 
+> **Actual:** Follow-up review fixes extracted the duplicated company display formatter into a shared helper, exported `CompanyEntry` from the package root, and added validation that every target resolves to a non-empty `company_name` after company-registry merging.
+
 **Step 4: Run tests to verify they pass**
 
 Run:
