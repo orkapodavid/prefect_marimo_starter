@@ -1,5 +1,13 @@
 # Japanese IR Webchanges Monitor Implementation Plan
 
+> **Status:** COMPLETE
+> **Completed:** 2026-03-24
+> **Total tasks:** 12
+> **Tasks completed:** 12
+> **Deviations:** 5 (documented inline)
+> **Test count:** 28 tests, all passing
+> **Blocking issues:** None
+
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
 **Goal:** Add a repo-native Japanese IR monitoring workflow that runs from a Marimo notebook, uses webchanges for stateful diffing, and reports meaningful changes for one or more company IR targets.
@@ -55,6 +63,8 @@ ir_monitor_webhook_url: str = Field(default="")
 Also:
 - pin `webchanges` to an explicit version in `pyproject.toml`
 - add optional browser support or document it as a runtime prerequisite
+
+> **Actual:** Pinned `webchanges==3.34.2` from the current PyPI release and added an optional `browser` extra via `webchanges[use-browser]==3.34.2`; also updated `uv.lock` because the repo uses `uv`-managed lockfiles.
 
 **Step 4: Run test to verify it passes**
 
@@ -285,6 +295,8 @@ def test_generic_jp_ir_news_normalizes_to_stable_sorted_lines():
     assert "TYPE=pdf | LANG=ja" in output
 ```
 
+> **Actual:** Expanded the task test coverage to include English HTML and JSON feed normalizers as well, because the spec requires automated coverage for both paths in addition to the JP normalizer.
+
 **Step 2: Run test to verify it fails**
 
 Run: `uv run pytest tests/unit/ir_monitor/test_ir_monitor_normalizers.py -v`
@@ -477,6 +489,8 @@ Requirements:
 - generate reporter settings for a structured changed-jobs sidecar
 - suppress `new` notifications in generated config
 
+> **Actual:** Used webchanges' documented `additions_only: true` job directive and `run_command` reporter with the `WEBCHANGES_CHANGED_JOBS_JSON` environment variable rather than the plan's illustrative `diff_filters` sketch; also added a follow-up regression fix so existing `state/baselines.json` content is preserved instead of being reinitialized on every build.
+
 **Step 4: Run test to verify it passes**
 
 Run: `uv run pytest tests/unit/ir_monitor/test_ir_monitor_jobs_builder.py -v`
@@ -557,6 +571,8 @@ Requirements:
 - capture stdout, stderr, exit code, and sidecar artifact paths
 - keep subprocess commands deterministic and testable
 
+> **Actual:** Added `pytest-mock` to the repo's dev dependencies because the planned test uses the `mocker` fixture; the runner invokes the console `webchanges` entrypoint (not `python -m webchanges`, which fails with `webchanges==3.34.2` in this environment) and includes a separate regression fix to merge newly initialized baseline IDs with existing metadata instead of overwriting it.
+
 **Step 4: Run test to verify it passes**
 
 Run: `uv run pytest tests/unit/ir_monitor/test_ir_monitor_runner.py -v`
@@ -607,6 +623,8 @@ def test_parse_monitor_report_prefers_structured_changed_jobs_payload():
     assert parsed.events[0].company_id == "mitsubishi_corp"
     assert parsed.unchanged_target_ids == ["nagase_ir_en"]
 ```
+
+> **Actual:** Added an explicit stdout-fallback failure test and fixtures as part of this task, because the spec requires automated coverage for fallback parsing behavior in addition to the structured changed-jobs path.
 
 **Step 2: Run test to verify it fails**
 
