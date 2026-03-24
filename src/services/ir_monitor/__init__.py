@@ -8,6 +8,7 @@ from .ir_monitor_models import (
     MonitorTarget,
     NotificationPayload,
     NormalizedItemRecord,
+    WorkspacePaths,
 )
 
 __all__ = [
@@ -17,5 +18,6 @@ __all__ = [
     "MonitorTarget",
     "NotificationPayload",
     "NormalizedItemRecord",
+    "WorkspacePaths",
     "load_monitor_config",
 ]

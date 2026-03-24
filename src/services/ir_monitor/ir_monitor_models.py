@@ -97,3 +97,17 @@ class NotificationPayload(BaseModel):
     changed_companies: int
     changed_targets: int
     events: list[MonitorChangeEvent] = Field(default_factory=list)
+
+
+class WorkspacePaths(BaseModel):
+    """Resolved workspace paths for an IR monitor run."""
+
+    root_dir: Path
+    generated_dir: Path
+    jobs_path: Path
+    config_path: Path
+    state_dir: Path
+    artifacts_dir: Path
+    logs_dir: Path
+    changed_jobs_path: Path
+    baseline_metadata_path: Path
