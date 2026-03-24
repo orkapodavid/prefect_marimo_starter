@@ -43,6 +43,8 @@ def _baseline_events(
             MonitorChangeEvent(
                 company_id=company_id,
                 company_name=metadata.get("company_name") or _infer_company_name(company_id),
+                ticker=metadata.get("ticker", ""),
+                exchange=metadata.get("exchange", ""),
                 target_id=target_id,
                 page_label=metadata.get("page_label") or target_id,
                 status="baseline_initialized",
@@ -76,6 +78,8 @@ def _parse_structured_payload(changed_jobs_payload: str) -> dict[str, dict[str, 
                 "target_id",
                 "company_id",
                 "company_name",
+                "ticker",
+                "exchange",
                 "page_label",
                 "status",
                 "diff_mode",
@@ -197,6 +201,8 @@ def parse_monitor_report(
                 MonitorChangeEvent(
                     company_id=company_id,
                     company_name=metadata.get("company_name") or _infer_company_name(company_id),
+                    ticker=metadata.get("ticker", ""),
+                    exchange=metadata.get("exchange", ""),
                     target_id=target_id,
                     page_label=metadata.get("page_label") or target_id,
                     status=metadata.get("status", "changed"),
@@ -215,6 +221,8 @@ def parse_monitor_report(
         )
         event.company_id = metadata.get("company_id") or event.company_id
         event.company_name = metadata.get("company_name") or event.company_name
+        event.ticker = metadata.get("ticker") or event.ticker
+        event.exchange = metadata.get("exchange") or event.exchange
         event.page_label = metadata.get("page_label") or event.page_label
         event.diff_mode = metadata.get("diff_mode") or event.diff_mode
 

@@ -69,6 +69,8 @@ with app.setup:
             target.id: {
                 "company_id": target.company_id,
                 "company_name": target.company_name,
+                "ticker": target.ticker,
+                "exchange": target.exchange,
                 "page_label": target.page_label,
                 "diff_mode": target.diff_mode or "additions_only",
             }
