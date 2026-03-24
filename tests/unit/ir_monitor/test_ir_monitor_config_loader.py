@@ -252,3 +252,52 @@ targets:
     assert config.runtime.notify_on_no_change is True
     assert str(config.runtime.workspace_dir).endswith("data/ir_monitor/legacy")
     assert config.targets[0].timezone == "Asia/Tokyo"
+
+
+def test_load_monitor_config_defaults_selector_type_for_normalizer_targets(
+    tmp_path: Path,
+):
+    config_path = tmp_path / "targets.yaml"
+    config_path.write_text(
+        """
+targets:
+  - id: mitsubishi_corp_ir_ja
+    company_id: mitsubishi_corp
+    company_name: Mitsubishi Corporation
+    page_label: Japanese IR page
+    page_url: https://example.com/ir
+    user_visible_url: https://example.com/ir
+    target_kind: html_list
+    normalizer: generic_jp_ir_news
+    enabled: true
+""",
+        encoding="utf-8",
+    )
+
+    config = load_monitor_config(config_path)
+
+    assert config.targets[0].selector_type == "custom_script"
+    assert config.targets[0].selector == ""
+
+
+def test_load_monitor_config_rejects_unsupported_selector_type(tmp_path: Path):
+    config_path = tmp_path / "targets.yaml"
+    config_path.write_text(
+        """
+targets:
+  - id: invalid_selector
+    company_id: invalid_company
+    company_name: Invalid Company
+    page_label: Invalid selector
+    page_url: https://example.com/invalid
+    user_visible_url: https://example.com/invalid
+    target_kind: html_list
+    selector_type: css
+    normalizer: generic_en_ir_news
+    enabled: true
+""",
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ValueError, match="selector_type"):
+        load_monitor_config(config_path)

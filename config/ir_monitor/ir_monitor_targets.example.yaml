@@ -22,8 +22,6 @@ targets:
     page_url: https://example.com/ir
     user_visible_url: https://example.com/ir
     target_kind: html_list
-    selector_type: custom_script
-    selector: ""
     normalizer: generic_jp_ir_news
     enabled: true
 
@@ -33,8 +31,6 @@ targets:
     page_url: https://stellapharm.com/news/all-stella-news/
     user_visible_url: https://stellapharm.com/news/all-stella-news/
     target_kind: html_list
-    selector_type: custom_script
-    selector: ""
     normalizer: generic_en_ir_news
     language: en
     enabled: true

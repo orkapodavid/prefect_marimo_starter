@@ -41,7 +41,7 @@ class MonitorTarget(BaseModel):
     page_url: str
     user_visible_url: str
     target_kind: Literal["html_list", "json_feed", "pdf_document"]
-    selector_type: str
+    selector_type: Literal["custom_script"] = "custom_script"
     selector: str = ""
     normalizer: str
     enabled: bool = True
