@@ -111,3 +111,13 @@ class WorkspacePaths(BaseModel):
     logs_dir: Path
     changed_jobs_path: Path
     baseline_metadata_path: Path
+
+
+class CommandResult(BaseModel):
+    """Captured subprocess result for a webchanges run."""
+
+    exit_code: int
+    stdout: str
+    stderr: str
+    changed_jobs_path: Path
+    baseline_target_ids: list[str] = Field(default_factory=list)
