@@ -1,0 +1,36 @@
+runtime:
+  timezone: Asia/Singapore
+  poll_batch_limit: 25
+  poll_window_minutes: 15
+  immediate_alerts_enabled: true
+  daily_digest_enabled: true
+  subject_prefix: "[X Monitor]"
+
+defaults:
+  include_replies: false
+  include_retweets: false
+  media_only: false
+
+targets:
+  - id: openai_posts
+    username: openai
+    keywords_any: ["launch", "GPT", "o1", "API"]
+    keywords_all: []
+    regex_any: []
+    alert_recipients: ["alerts@example.com"]
+    digest_recipients: ["digest@example.com"]
+    active: true
+
+  - id: nvidia_ir
+    username: nvidia
+    include_replies: false
+    include_retweets: false
+    media_only: false
+    keywords_any: ["earnings", "guidance", "revenue"]
+    keywords_all: []
+    regex_any:
+      - "\\bSEC\\b"
+      - "\\bpartnership\\b"
+    alert_recipients: ["alerts@example.com"]
+    digest_recipients: ["digest@example.com"]
+    active: true
