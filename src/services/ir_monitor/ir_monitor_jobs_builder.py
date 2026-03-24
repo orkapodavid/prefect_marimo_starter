@@ -130,6 +130,7 @@ def build_workspace_files(config: MonitorConfig, workspace_dir: Path) -> Workspa
         yaml.safe_dump(config_payload, sort_keys=False, allow_unicode=True),
         encoding="utf-8",
     )
-    workspace.baseline_metadata_path.write_text("{}", encoding="utf-8")
+    if not workspace.baseline_metadata_path.exists():
+        workspace.baseline_metadata_path.write_text("{}", encoding="utf-8")
 
     return workspace

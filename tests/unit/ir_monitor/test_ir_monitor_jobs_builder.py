@@ -45,3 +45,36 @@ def test_build_workspace_files_writes_jobs_config_and_state_paths(tmp_path: Path
     assert "user_visible_url" in jobs_text
     assert jobs_text.count("https://example.co.jp/jp/ir/") >= 1
     assert "run_command" in config_text
+
+
+def test_build_workspace_files_preserves_existing_baseline_metadata(tmp_path: Path):
+    config = MonitorConfig(
+        defaults=MonitorDefaults(timezone="Asia/Tokyo", report_timezone="Asia/Tokyo"),
+        targets=[
+            MonitorTarget(
+                id="mitsubishi_corp_ir_ja",
+                company_id="mitsubishi_corp",
+                company_name="Mitsubishi Corporation",
+                page_label="Japanese IR page",
+                page_url="https://example.co.jp/jp/ir/",
+                user_visible_url="https://example.co.jp/jp/ir/",
+                target_kind="html_list",
+                selector_type="custom_script",
+                normalizer="generic_jp_ir_news",
+                enabled=True,
+            )
+        ],
+    )
+    state_dir = tmp_path / "state"
+    state_dir.mkdir(parents=True, exist_ok=True)
+    baseline_metadata_path = state_dir / "baselines.json"
+    baseline_metadata_path.write_text(
+        '{"baseline_target_ids": ["mitsubishi_corp_ir_ja"]}',
+        encoding="utf-8",
+    )
+
+    workspace = build_workspace_files(config=config, workspace_dir=tmp_path)
+
+    assert workspace.baseline_metadata_path.read_text(encoding="utf-8") == (
+        '{"baseline_target_ids": ["mitsubishi_corp_ir_ja"]}'
+    )
