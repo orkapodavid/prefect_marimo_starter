@@ -415,5 +415,23 @@ When generating code for this project:
    - For notebooks, rely on the active environment where the project is installed.
 9. **File Naming Convention**
    - Always prefix module-specific files with the folder name for easier code reading (e.g., `fefta/fefta_models.py` instead of `fefta/models.py`), also applicable for .md files. This avoids ambiguity when multiple files have the same generic name.
+10. **Plan File Naming Convention**
+    - All plan-related files in `plans/` must share the same `YYYY-MM-DD-<topic-slug>` prefix so they sort together and can be identified as a group at a glance.
+    - Required suffixes by file type:
+      | Suffix | Purpose |
+      |--------|---------|
+      | `-implementation-plan.md` | Task-by-task implementation plan |
+      | `-master-program.md` | LLM agent operating protocol for executing the plan |
+      | `-implementation-prompt.md` | Self-contained prompt to hand to an implementing agent |
+      | `-review.md` | Post-implementation review notes and deviations |
+    - Never use generic names like `MASTER_PROGRAM.md` or `IMPLEMENTATION_PROMPT.md`. The prefix must match the plan file exactly.
+    - Example file set:
+      ```
+      plans/2026-03-24-prefect-webchanges-implementation-plan.md
+      plans/2026-03-24-prefect-webchanges-implementation-prompt.md
+      plans/2026-03-24-prefect-webchanges-master-program.md
+      plans/2026-03-24-prefect-webchanges-review.md
+      ```
+    - Keep the original date prefix even if the plan is revised later — it marks creation, not last edit.
 
 ---
