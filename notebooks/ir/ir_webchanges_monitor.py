@@ -97,6 +97,25 @@ with app.setup:
             return notify_on_no_change
         return config.runtime.notify_on_no_change
 
+    def _raise_for_failed_webchanges_run(
+        command_result: CommandResult,
+        parsed_report: ParsedMonitorReport,
+        artifact_paths: ArtifactPaths,
+    ) -> None:
+        if command_result.exit_code == 0:
+            return
+
+        failed_target_suffix = ""
+        if parsed_report.failed_target_ids:
+            failed_target_suffix = (
+                f" Failed targets: {', '.join(sorted(parsed_report.failed_target_ids))}."
+            )
+        raise RuntimeError(
+            "webchanges exited with code "
+            f"{command_result.exit_code}.{failed_target_suffix} "
+            f"See {artifact_paths.raw_report_path} for details."
+        )
+
 
 # ============================================================
 # TASKS
@@ -267,6 +286,11 @@ def run_ir_webchanges_monitor(
         raw_report=raw_report,
         run_label=run_label,
         environment=environment,
+    )
+    _raise_for_failed_webchanges_run(
+        command_result=command_result,
+        parsed_report=parsed_report,
+        artifact_paths=artifact_paths,
     )
     notification_result = notify_if_needed(
         config=config,
