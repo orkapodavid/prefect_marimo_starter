@@ -76,6 +76,13 @@ class Settings(BaseSettings):
     pg_backup_timeout_seconds: int = Field(default=3600)
     pg_backup_min_free_space_gb: int = Field(default=5)
 
+    # IR Monitor
+    ir_monitor_workspace_dir: Path = Field(default=Path("./data/ir_monitor"))
+    ir_monitor_schedule_cron: str = Field(default="0 * * * 1-5")
+    ir_monitor_timezone: str = Field(default="Asia/Tokyo")
+    ir_monitor_report_timezone: str = Field(default="Asia/Tokyo")
+    ir_monitor_webhook_url: str = Field(default="")
+
 
 def resolve_pg_backup_password(settings: Settings | None = None) -> str:
     """Resolve the PostgreSQL backup password without logging secrets."""
