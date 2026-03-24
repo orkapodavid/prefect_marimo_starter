@@ -38,3 +38,13 @@ deployments:
 
 ## Step 4: Deploy
 Run `prefect deploy --name daily-report` to register the new flow.
+
+## IR Monitor Example
+
+The IR monitor flow lives at `notebooks/ir/ir_webchanges_monitor.py`.
+
+Use this pattern when the workflow needs:
+1. A unified Marimo + Prefect notebook entrypoint.
+2. Shared service code under `src/services/ir_monitor/`.
+3. A direct deployment entry in `prefect.yaml`.
+4. Config files under `config/ir_monitor/`.
