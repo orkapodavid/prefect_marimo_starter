@@ -7,6 +7,10 @@ definitions:
     windows_pool: &windows_pool
       name: windows-process-pool
       work_queue_name: default
+
+    macos_pool: &macos_pool
+      name: local-process-pool
+      work_queue_name: default
   
   schedules:
     daily_6am: &daily_6am
@@ -33,12 +37,24 @@ definitions:
       cron: "0 * * * 1-5"
       timezone: "Asia/Tokyo"
 
+    every_5_min_singapore: &every_5_min_singapore
+      cron: "*/5 * * * *"
+      timezone: "Asia/Singapore"
+
+    daily_8am_singapore: &daily_8am_singapore
+      cron: "0 8 * * *"
+      timezone: "Asia/Singapore"
+
+    every_30_min_singapore: &every_30_min_singapore
+      cron: "*/30 * * * *"
+      timezone: "Asia/Singapore"
+
 # Deployments point directly to notebook flows
 
 # Generic pull step for all deployments (avoids "remote storage" prompts)
 pull:
   - prefect.deployments.steps.set_working_directory:
-      directory: C:\Users\orkap\Desktop\Programming\prefect_marimo_starter
+      directory: /Users/orbot/Developer/work/prefect_marimo_starter
 
 deployments:
   - name: daily-data-sync-dev
@@ -196,3 +212,36 @@ deployments:
     work_pool: *windows_pool
     schedules:
       - *hourly_weekday_tokyo
+
+  - name: x-monitor-poll-accounts-prod
+    entrypoint: notebooks/x_monitor/x_monitor_poll_accounts.py:run_x_monitor_poll_accounts
+    description: "Poll X/Twitter accounts for new posts and send immediate alerts"
+    tags: [prod, x_monitor, polling]
+    parameters:
+      config_path: "./config/x_monitor/x_monitor_targets.yaml"
+      environment: "prod"
+    work_pool: *macos_pool
+    schedules:
+      - *every_5_min_singapore
+
+  - name: x-monitor-send-digest-prod
+    entrypoint: notebooks/x_monitor/x_monitor_send_digest.py:run_x_monitor_send_digest
+    description: "Send daily digest emails for X monitor matches"
+    tags: [prod, x_monitor, digest]
+    parameters:
+      config_path: "./config/x_monitor/x_monitor_targets.yaml"
+      environment: "prod"
+    work_pool: *macos_pool
+    schedules:
+      - *daily_8am_singapore
+
+  - name: x-monitor-healthcheck-prod
+    entrypoint: notebooks/x_monitor/x_monitor_healthcheck.py:run_x_monitor_healthcheck
+    description: "Health check for X monitor infrastructure"
+    tags: [prod, x_monitor, health]
+    parameters:
+      config_path: "./config/x_monitor/x_monitor_targets.yaml"
+      environment: "prod"
+    work_pool: *macos_pool
+    schedules:
+      - *every_30_min_singapore

@@ -130,6 +130,21 @@ uv run webchanges --install-chrome
 On Windows, keep UTF-8 enabled for shell/process execution so Japanese text is preserved
 correctly in subprocess output and generated artifacts.
 
+### X Monitor Workflow
+
+The repo also includes an **X monitor** workflow built around PostgreSQL state,
+Prefect notebook deployments, and Gmail delivery. The flows live at:
+
+- `notebooks/x_monitor/x_monitor_poll_accounts.py`
+- `notebooks/x_monitor/x_monitor_send_digest.py`
+- `notebooks/x_monitor/x_monitor_healthcheck.py`
+
+Configuration lives under `config/x_monitor/`, durable twscrape and run-state files
+live under `data/x_monitor/`, and the operational setup guide is documented in
+`docs/x_monitor/x_monitor_setup.md`. The macOS deployment model uses the
+`local-process-pool` Prefect work pool plus `launchd` wrappers for the Prefect
+server and worker processes.
+
 ## Running Modes
 
 | Mode | Command | Use Case |
@@ -213,6 +228,12 @@ For an IR monitor workflow, use `notebooks/ir/ir_webchanges_monitor.py` as the r
 - keep reusable parsing and normalization logic under `src/services/ir_monitor/`
 - keep the Prefect flow in the notebook
 - point `prefect.yaml` directly at the notebook entrypoint
+
+For an X monitor workflow, use the `notebooks/x_monitor/` notebooks as the reference:
+- keep target configuration under `config/x_monitor/`
+- keep database, polling, matching, and notification code under `src/services/x_monitor/`
+- add deployments directly in `prefect.yaml`
+- document macOS operations under `docs/x_monitor/x_monitor_setup.md`
 
 ## Troubleshooting
 

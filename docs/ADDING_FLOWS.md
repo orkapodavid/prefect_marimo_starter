@@ -48,3 +48,14 @@ Use this pattern when the workflow needs:
 2. Shared service code under `src/services/ir_monitor/`.
 3. A direct deployment entry in `prefect.yaml`.
 4. Config files under `config/ir_monitor/`.
+
+## X Monitor Example
+
+The X monitor flows live under `notebooks/x_monitor/`, with the polling entrypoint at
+`notebooks/x_monitor/x_monitor_poll_accounts.py`.
+
+Use this pattern when the workflow needs:
+1. A unified Marimo + Prefect notebook entrypoint for each flow.
+2. Shared service code under `src/services/x_monitor/`.
+3. PostgreSQL-backed state plus Prefect deployments in `prefect.yaml`.
+4. Config files under `config/x_monitor/`.

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+  <dict>
+    <key>Label</key>
+    <string>x_monitor_prefect_server</string>
+
+    <key>ProgramArguments</key>
+    <array>
+      <string>/bin/bash</string>
+      <string>/Users/orbot/Developer/work/prefect_marimo_starter/scripts/macos/x_monitor_run_prefect_server.sh</string>
+    </array>
+
+    <key>RunAtLoad</key>
+    <true/>
+
+    <key>KeepAlive</key>
+    <true/>
+
+    <key>StandardOutPath</key>
+    <string>/Users/orbot/Library/Logs/x_monitor_prefect_server.out.log</string>
+
+    <key>StandardErrorPath</key>
+    <string>/Users/orbot/Library/Logs/x_monitor_prefect_server.err.log</string>
+  </dict>
+</plist>
+
