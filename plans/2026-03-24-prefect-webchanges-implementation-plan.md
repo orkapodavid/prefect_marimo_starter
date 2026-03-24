@@ -4,8 +4,8 @@
 > **Completed:** 2026-03-24
 > **Total tasks:** 12
 > **Tasks completed:** 12
-> **Deviations:** 5 (documented inline)
-> **Test count:** 28 tests, all passing
+> **Deviations:** 8 (documented inline)
+> **Test count:** 32 tests, all passing
 > **Blocking issues:** None
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
@@ -13,6 +13,8 @@
 **Goal:** Add a repo-native Japanese IR monitoring workflow that runs from a Marimo notebook, uses webchanges for stateful diffing, and reports meaningful changes for one or more company IR targets.
 
 **Architecture:** Keep orchestration inside `notebooks/ir/ir_webchanges_monitor.py` and push reusable config, normalization, webchanges, artifact, and notification logic into `src/services/ir_monitor/`. The implementation must preserve durable webchanges state across runs, use a structured changed-jobs sidecar as the primary parse source, and group reporting by company before target/page.
+
+> **Actual:** `webchanges==3.34.2` does not expose the changed-jobs env payload assumed by the plan, so the final runtime implementation treats stdout as the diff source of truth and enriches parsed events from config metadata; the structured payload remains optional and is only used when valid sidecar data is supplied.
 
 **Tech Stack:** Python 3.12, Prefect 3, Marimo, webchanges, pydantic, pydantic-settings, PyYAML, BeautifulSoup4, lxml, pypdf, pytest, ruff
 
@@ -489,7 +491,7 @@ Requirements:
 - generate reporter settings for a structured changed-jobs sidecar
 - suppress `new` notifications in generated config
 
-> **Actual:** Used webchanges' documented `additions_only: true` job directive and `run_command` reporter with the `WEBCHANGES_CHANGED_JOBS_JSON` environment variable rather than the plan's illustrative `diff_filters` sketch; also added a follow-up regression fix so existing `state/baselines.json` content is preserved instead of being reinitialized on every build.
+> **Actual:** Used webchanges' documented `additions_only: true` job directive, emitted the generated jobs file as multi-document YAML (the format `webchanges` actually accepts), removed custom top-level job metadata keys that the real loader rejects, and dropped the planned `run_command` sidecar reporter after verifying that `webchanges==3.34.2` does not expose usable per-job change payloads there.
 
 **Step 4: Run test to verify it passes**
 
@@ -571,7 +573,7 @@ Requirements:
 - capture stdout, stderr, exit code, and sidecar artifact paths
 - keep subprocess commands deterministic and testable
 
-> **Actual:** Added `pytest-mock` to the repo's dev dependencies because the planned test uses the `mocker` fixture; the runner invokes the console `webchanges` entrypoint (not `python -m webchanges`, which fails with `webchanges==3.34.2` in this environment) and includes a separate regression fix to merge newly initialized baseline IDs with existing metadata instead of overwriting it.
+> **Actual:** Added `pytest-mock` to the repo's dev dependencies because the planned test uses the `mocker` fixture; the runner invokes the console `webchanges` entrypoint (not `python -m webchanges`, which fails with `webchanges==3.34.2` in this environment), merges newly initialized baseline IDs with existing metadata instead of overwriting it, and records new baselines only after `--prepare-jobs` succeeds.
 
 **Step 4: Run test to verify it passes**
 
@@ -624,7 +626,7 @@ def test_parse_monitor_report_prefers_structured_changed_jobs_payload():
     assert parsed.unchanged_target_ids == ["nagase_ir_en"]
 ```
 
-> **Actual:** Added an explicit stdout-fallback failure test and fixtures as part of this task, because the spec requires automated coverage for fallback parsing behavior in addition to the structured changed-jobs path.
+> **Actual:** Added explicit stdout-fallback tests and updated fixtures to match real `webchanges 3.34.2` console output, including duplicated summary/detail headers; the final parser ignores invalid sidecar payloads, extracts diff lines from stdout, and enriches company/page metadata from the monitor config.
 
 **Step 2: Run test to verify it fails**
 
@@ -740,6 +742,8 @@ Rules:
 - do not notify on `baseline_initialized` or no-change unless explicitly enabled
 - use webhook first when configured
 - otherwise fall back to log-only output
+
+> **Actual:** The notifier now also falls back to log-only on webhook delivery errors instead of failing the flow, and the notebook registers the generated Markdown summary as a Prefect artifact keyed by environment.
 
 **Step 4: Run test to verify it passes**
 
