@@ -11,12 +11,14 @@ companies:
     ticker: 8058.T
     exchange: TSE
 
-defaults:
-  timezone: Asia/Tokyo
-  report_timezone: Asia/Tokyo
+runtime:
   notify_on_no_change: false
   workspace_dir: ./data/ir_monitor/prod
   schedule_cron: "0 * * * 1-5"
+
+defaults:
+  timezone: Asia/Tokyo
+  report_timezone: Asia/Tokyo
 
 targets:
   - id: mitsubishi_corp_ir_ja
@@ -25,8 +27,6 @@ targets:
     page_url: https://www.mitsubishicorp.com/jp/ja/ir/
     user_visible_url: https://www.mitsubishicorp.com/jp/ja/ir/
     target_kind: html_list
-    selector_type: custom_script
-    selector: ""
     normalizer: generic_jp_ir_news
     enabled: true
 ```
@@ -49,6 +49,20 @@ When a target references a matching `company_id`, the loader resolves:
 
 If the target also supplies `company_name`, the registry value wins.
 
+## `runtime`
+
+`runtime` is optional.
+
+It controls run-level behavior that does not belong on individual targets:
+
+- `notify_on_no_change`
+- `workspace_dir`
+- `schedule_cron`
+
+During the transition, legacy configs may still place these keys under `defaults`.
+The loader normalizes them into `config.runtime`, but new configs should use a top-level
+`runtime:` section.
+
 ## `defaults`
 
 `defaults` are merged onto every target before validation.
@@ -57,9 +71,6 @@ Important fields:
 
 - `timezone`
 - `report_timezone`
-- `notify_on_no_change`
-- `workspace_dir`
-- `schedule_cron`
 
 ## `targets`
 
@@ -71,7 +82,6 @@ Required target fields:
 - `page_url`
 - `user_visible_url`
 - `target_kind`
-- `selector_type`
 - `normalizer`
 
 Target-level `company_name` is still supported for backward compatibility, but it is
@@ -84,6 +94,11 @@ Optional target metadata now includes:
 
 These are normally resolved from `companies`, but can still exist on the target model
 after loading and enrichment.
+
+Selector fields:
+
+- `selector_type` is optional and currently fixed to `custom_script`
+- `selector` is optional and defaults to `""`
 
 ## Backward Compatibility
 
@@ -98,7 +113,25 @@ targets:
     page_url: https://example.com/legacy
     user_visible_url: https://example.com/legacy
     target_kind: html_list
-    selector_type: custom_script
+    normalizer: generic_en_ir_news
+    enabled: true
+```
+
+Legacy runtime keys under `defaults` still work during the transition:
+
+```yaml
+defaults:
+  timezone: Asia/Tokyo
+  notify_on_no_change: true
+  workspace_dir: ./data/ir_monitor/legacy
+targets:
+  - id: legacy_target
+    company_id: legacy_company
+    company_name: Legacy Company
+    page_label: Legacy page
+    page_url: https://example.com/legacy
+    user_visible_url: https://example.com/legacy
+    target_kind: html_list
     normalizer: generic_en_ir_news
     enabled: true
 ```
@@ -113,7 +146,6 @@ targets:
     page_url: https://example.com/invalid
     user_visible_url: https://example.com/invalid
     target_kind: html_list
-    selector_type: custom_script
     normalizer: generic_en_ir_news
     enabled: true
 ```

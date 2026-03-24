@@ -108,7 +108,9 @@ The repo includes an **IR monitor** workflow at `notebooks/ir/ir_webchanges_moni
 It uses pinned `webchanges==3.34.2` for durable snapshot diffing and expects target
 configuration under `config/ir_monitor/`. The example config supports an optional
 top-level `companies` registry so `name`, `ticker`, and `exchange` can be defined once
-per `company_id` and then reused across multiple targets.
+per `company_id` and then reused across multiple targets. Run-level settings such as
+`workspace_dir`, `notify_on_no_change`, and `schedule_cron` now live under a top-level
+`runtime` section, while `defaults` is limited to per-target fields.
 
 For local execution:
 

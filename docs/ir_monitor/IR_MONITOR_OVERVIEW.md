@@ -19,7 +19,7 @@ real changes are detected.
 ## Runtime Behavior
 
 1. Load the YAML config from `config/ir_monitor/`.
-2. Resolve company metadata, defaults, and enabled targets.
+2. Resolve company metadata, target defaults, runtime settings, and enabled targets.
 3. Build a durable `webchanges` workspace under the configured environment path.
 4. Initialize baselines for newly added targets with `--prepare-jobs`.
 5. Run `webchanges` against all enabled targets.
@@ -46,11 +46,29 @@ target-level `company_name` and also supplies `ticker` and `exchange`.
 
 If `companies` is absent, the target-level `company_name` path continues to work.
 
+## Runtime Settings
+
+Run-level settings now live under a top-level `runtime` section:
+
+- `notify_on_no_change`
+- `workspace_dir`
+- `schedule_cron`
+
+Legacy configs that still place these keys under `defaults` are normalized during
+loading, but new configs should keep `defaults` limited to target-level fields such as
+`timezone` and `report_timezone`.
+
 ## Display Rules
 
 - Artifacts group events by `Company Name (TICKER)` when a ticker exists.
 - Notifications use the same label.
 - If `ticker` is empty, the display falls back to `Company Name`.
+
+## Selector Contract
+
+The current implementation only supports the normalizer-backed `custom_script` selector
+mode. `selector_type` and `selector` remain accepted for compatibility, but they are no
+longer required in example configs.
 
 ## Local Commands
 
