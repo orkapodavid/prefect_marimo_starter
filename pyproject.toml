@@ -6,6 +6,7 @@ requires-python = ">=3.12"
 dependencies = [
     "prefect>=3.0.0,<4.0.0",
     "marimo>=0.10.9",
+    "webchanges==3.34.2",
     "polars>=1.0.0",
     "pandas>=2.0.0",
     "sqlalchemy>=2.0.0",
@@ -30,8 +31,13 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+browser = [
+    "webchanges[use-browser]==3.34.2",
+]
+
 dev = [
     "pytest>=8.0.0",
+    "pytest-mock>=3.14.0",
     "ruff>=0.4.0",
     "pre-commit>=3.0.0",
 ]
@@ -64,4 +70,5 @@ python_functions = ["test_*"]
 [dependency-groups]
 dev = [
     "pytest>=9.0.2",
+    "pytest-mock>=3.14.0",
 ]

@@ -195,7 +195,7 @@ class HttpClient:
             # Try to get actual PDF URL if this is a display URL
             actual_url = self.accept_terms_and_get_pdf_url(url)
             if not actual_url:
-                logger.warning(f"Could not get actual PDF URL, trying direct download")
+                logger.warning("Could not get actual PDF URL, trying direct download")
                 response = self.get(url, allow_redirects=True)
             else:
                 response = self.get(actual_url)

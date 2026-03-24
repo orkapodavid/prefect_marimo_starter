@@ -64,7 +64,7 @@ class TestTdnetSearchSmoke:
         assert result.total_count >= 0
         assert "search_terms_used" in result.metadata
 
-        print(f"\n✅ TDnet Search Verification:")
+        print("\n✅ TDnet Search Verification:")
         print(f"   Date range: {start_date} to {end_date}")
         print(f"   Total entries found: {result.total_count}")
         print(f"   Search terms used: {len(result.metadata['search_terms_used'])}")
@@ -82,7 +82,7 @@ class TestTdnetSearchSmoke:
                     tiers_found.add(entry.tier)
 
             print(f"\n   Tiers matched: {tiers_found}")
-            print(f"\n   Sample entries:")
+            print("\n   Sample entries:")
             for entry in result.entries[:5]:
                 print(
                     f"     {entry.publish_date} | {entry.stock_code} | {entry.company_name[:20]}..."
@@ -112,7 +112,7 @@ class TestTdnetSearchSmoke:
                 f"Entry date {entry.publish_date} outside range [{start_date}, {end_date}]"
             )
 
-        print(f"\n✅ Narrow Date Range Verification:")
+        print("\n✅ Narrow Date Range Verification:")
         print(f"   Date range: {start_date} to {end_date}")
         print(f"   Entries found: {result.total_count}")
 
@@ -131,7 +131,7 @@ class TestTdnetSearchSmoke:
         pdf_count = sum(1 for e in result.entries if e.pdf_url)
         no_pdf_count = len(result.entries) - pdf_count
 
-        print(f"\n✅ PDF Link Verification:")
+        print("\n✅ PDF Link Verification:")
         print(f"   Entries with PDF: {pdf_count}")
         print(f"   Entries without PDF: {no_pdf_count}")
 
@@ -171,7 +171,7 @@ class TestTdnetSearchSmoke:
         assert "share_count" in details, "Failed to extract share_count"
         assert "deal_structure" in details, "Failed to extract deal_structure"
 
-        print(f"\n✅ Deal Details Extraction Verification:")
+        print("\n✅ Deal Details Extraction Verification:")
         print(f"   Investor: {details.get('investor')}")
         print(f"   Deal Size: {details.get('deal_size')} {details.get('deal_size_currency', '')}")
         print(f"   Share Price: {details.get('share_price')}")

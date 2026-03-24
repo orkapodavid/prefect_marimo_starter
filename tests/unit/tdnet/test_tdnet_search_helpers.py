@@ -10,7 +10,6 @@ from datetime import date
 
 from src.services.tdnet.tdnet_search_helpers import (
     parse_search_results,
-    extract_pdf_link,
     parse_date_str,
     extract_deal_details,
 )

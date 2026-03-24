@@ -1,8 +1,7 @@
-from collections import defaultdict, Counter
-from typing import List, Dict, Any
+from collections import defaultdict
+from typing import List, Dict
 from datetime import datetime
 import json
-from .tdnet_search_models import TdnetSearchEntry
 
 
 class TDnetAnalyzer:
@@ -34,7 +33,7 @@ class TDnetAnalyzer:
         # Sort by activity
         sorted_companies = sorted(company_activity.items(), key=lambda x: x[1], reverse=True)
 
-        print(f"\nTop 15 Most Active Companies (by announcement count):")
+        print("\nTop 15 Most Active Companies (by announcement count):")
         print("-" * 80)
         print(f"{'Rank':<5} {'Company Name':<40} {'Announcements':<15}")
         print("-" * 80)
@@ -63,7 +62,7 @@ class TDnetAnalyzer:
         # Sort by date
         sorted_dates = sorted(daily_counts.items())
 
-        print(f"\nAnnouncements by Date:")
+        print("\nAnnouncements by Date:")
         print("-" * 80)
         print(f"{'Date':<15} {'Count':<10} {'Trend':<50}")
         print("-" * 80)
@@ -91,7 +90,7 @@ class TDnetAnalyzer:
 
         sorted_codes = sorted(code_activity.items(), key=lambda x: x[1], reverse=True)
 
-        print(f"\nTop 10 Stock Codes by Announcement Frequency:")
+        print("\nTop 10 Stock Codes by Announcement Frequency:")
         print("-" * 80)
         print(f"{'Stock Code':<15} {'Company':<40} {'Count':<10}")
         print("-" * 80)
@@ -132,7 +131,7 @@ class TDnetAnalyzer:
             else:
                 categories["Other"] += 1
 
-        print(f"\nAnnouncement Type Distribution:")
+        print("\nAnnouncement Type Distribution:")
         print("-" * 80)
         print(f"{'Type':<30} {'Count':<10} {'Percentage':<15}")
         print("-" * 80)
@@ -153,7 +152,7 @@ class TDnetAnalyzer:
             print("No results to analyze.")
             return
 
-        print(f"\nDataset Overview:")
+        print("\nDataset Overview:")
         print(f"  • Total announcements: {len(results)}")
         companies = set(r.get("company_name") for r in results if r.get("company_name"))
         print(f"  • Unique companies: {len(companies)}")

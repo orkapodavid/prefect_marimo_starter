@@ -29,6 +29,10 @@ definitions:
       cron: "0 10,14,17 * * 1-5"
       timezone: "Australia/Sydney"
 
+    hourly_weekday_tokyo: &hourly_weekday_tokyo
+      cron: "0 * * * 1-5"
+      timezone: "Asia/Tokyo"
+
 # Deployments point directly to notebook flows
 
 # Generic pull step for all deployments (avoids "remote storage" prompts)
@@ -179,3 +183,16 @@ deployments:
       output_format: "csv"
     work_pool: *windows_pool
     schedules: []
+
+  - name: ir-webchanges-monitor-prod
+    entrypoint: notebooks/ir/ir_webchanges_monitor.py:run_ir_webchanges_monitor
+    description: "Monitor configured Japanese IR pages with webchanges"
+    tags: [prod, ir, webchanges]
+    parameters:
+      config_path: "./config/ir_monitor/ir_monitor_targets.yaml"
+      environment: "prod"
+      notify_on_no_change: false
+      dry_run: false
+    work_pool: *windows_pool
+    schedules:
+      - *hourly_weekday_tokyo

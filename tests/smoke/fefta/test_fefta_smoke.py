@@ -70,7 +70,7 @@ class TestFeftaCrawlerSmoke:
         assert "mof.go.jp" in source.file_url
         assert source.saved_path is None  # Not downloaded yet
 
-        print(f"\n✅ FEFTA Source Verification:")
+        print("\n✅ FEFTA Source Verification:")
         print(f"   As of: {source.as_of_date}")
         print(f"   Raw: {source.as_of_raw}")
         print(f"   URL: {source.file_url}")
@@ -101,7 +101,7 @@ class TestFeftaCrawlerSmoke:
         file_size = saved_path.stat().st_size
         assert file_size > 10000, f"File too small: {file_size} bytes"
 
-        print(f"\n✅ Excel Download Verification:")
+        print("\n✅ Excel Download Verification:")
         print(f"   Path: {source.saved_path}")
         print(f"   Size: {file_size:,} bytes")
 
@@ -134,9 +134,9 @@ class TestFeftaCrawlerSmoke:
             assert record.company_name_ja, "Japanese company name is empty"
             assert record.issue_or_company_name, "English company name is empty"
 
-        print(f"\n✅ Record Parsing Verification:")
+        print("\n✅ Record Parsing Verification:")
         print(f"   Total records: {len(records)}")
-        print(f"   Sample records:")
+        print("   Sample records:")
         for r in records[:5]:
             print(
                 f"     {r.securities_code} | {r.isin_code} | {r.company_name_ja[:20]}... | cat={r.category}"
@@ -169,10 +169,10 @@ class TestFeftaCrawlerSmoke:
             for r in records:
                 categories[r.category] = categories.get(r.category, 0) + 1
 
-            print(f"\n✅ Full Crawl Workflow Verification:")
+            print("\n✅ Full Crawl Workflow Verification:")
             print(f"   Total companies: {len(records)}")
             print(f"   As of: {source.as_of_date}")
-            print(f"   Category distribution:")
+            print("   Category distribution:")
             for cat in sorted(categories.keys()):
                 print(f"     Category {cat}: {categories[cat]} companies")
 

@@ -1,5 +1,4 @@
 import logging
-import os
 from typing import Optional
 
 from services.exchange_email.exchange_email_service import ExchangeEmailService

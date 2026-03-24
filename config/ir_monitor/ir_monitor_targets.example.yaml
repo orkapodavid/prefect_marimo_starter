@@ -1,0 +1,38 @@
+companies:
+  mitsubishi_corp:
+    name: Mitsubishi Corporation
+    ticker: 8058.T
+    exchange: TSE
+  stellapharm:
+    name: Stella Pharma
+    ticker: STLA.VN
+    exchange: HOSE
+
+runtime:
+  notify_on_no_change: false
+  workspace_dir: ./data/ir_monitor/prod
+  schedule_cron: "0 * * * 1-5"
+
+defaults:
+  timezone: Asia/Tokyo
+  report_timezone: Asia/Tokyo
+
+targets:
+  - id: mitsubishi_corp_ir_ja
+    company_id: mitsubishi_corp
+    page_label: Japanese IR page
+    page_url: https://example.com/ir
+    user_visible_url: https://example.com/ir
+    target_kind: html_list
+    normalizer: generic_jp_ir_news
+    enabled: true
+
+  - id: stellapharm_news_en
+    company_id: stellapharm
+    page_label: All Stella News
+    page_url: https://stellapharm.com/news/all-stella-news/
+    user_visible_url: https://stellapharm.com/news/all-stella-news/
+    target_kind: html_list
+    normalizer: generic_en_ir_news
+    language: en
+    enabled: true

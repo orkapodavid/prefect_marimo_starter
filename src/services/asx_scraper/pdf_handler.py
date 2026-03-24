@@ -6,7 +6,6 @@ Includes Section 8 data extraction for Appendix 5B reports.
 import re
 import logging
 from pathlib import Path
-from typing import Optional
 import fitz  # PyMuPDF
 import pdfplumber
 
@@ -135,7 +134,7 @@ class PdfHandler:
                 value = match.group(1).strip()
                 if value.upper() in ['N/A', 'NA']:
                     data.item_8_7_estimated_quarters = 'N/A'
-                    logger.debug(f"Extracted 8.7 value: N/A")
+                    logger.debug("Extracted 8.7 value: N/A")
                     break
                 try:
                     data.item_8_7_estimated_quarters = float(value)
@@ -198,7 +197,7 @@ class PdfHandler:
                                             cell_str = str(cell).strip().upper()
                                             if cell_str in ['N/A', 'NA']:
                                                 data.item_8_7_estimated_quarters = 'N/A'
-                                                logger.debug(f"Extracted 8.7 from table: N/A")
+                                                logger.debug("Extracted 8.7 from table: N/A")
                                             else:
                                                 num_match = re.search(r'(\d+\.?\d*)', cell_str)
                                                 if num_match and data.item_8_7_estimated_quarters is None:

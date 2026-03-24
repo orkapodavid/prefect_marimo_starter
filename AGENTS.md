@@ -433,5 +433,9 @@ When generating code for this project:
       plans/2026-03-24-prefect-webchanges-review.md
       ```
     - Keep the original date prefix even if the plan is revised later — it marks creation, not last edit.
+11. **Temporary Files**
+    - Always write temporary/scratch files to `tmp/` at the repo root (git-ignored), **never** to `/tmp/` or other system-level directories.
+    - This keeps ephemeral outputs (downloaded HTML, test workspace directories, debug artifacts) co-located with the repo and easy to find or clean up.
+    - Example: `tmp/stellapharm_news.html`, `tmp/ir_monitor_e2e/`.
 
 ---

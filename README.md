@@ -102,6 +102,34 @@ prefect worker start --pool windows-process-pool --type process
 2.  **Run**: `python notebooks/etl/daily_sync.py`
 3.  **Deploy**: `prefect deploy --all`
 
+### IR Monitor Workflow
+
+The repo includes an **IR monitor** workflow at `notebooks/ir/ir_webchanges_monitor.py`.
+It uses pinned `webchanges==3.34.2` for durable snapshot diffing and expects target
+configuration under `config/ir_monitor/`. The example config supports an optional
+top-level `companies` registry so `name`, `ticker`, and `exchange` can be defined once
+per `company_id` and then reused across multiple targets. Run-level settings such as
+`workspace_dir`, `notify_on_no_change`, and `schedule_cron` now live under a top-level
+`runtime` section, while `defaults` is limited to per-target fields.
+
+For local execution:
+
+```bash
+uv run python notebooks/ir/ir_webchanges_monitor.py
+```
+
+Browser-backed targets are optional. If you enable `use_browser: true`, install the
+browser extra and Chrome runtime first:
+
+```bash
+uv sync --extra dev
+uv pip install -e ".[browser]"
+uv run webchanges --install-chrome
+```
+
+On Windows, keep UTF-8 enabled for shell/process execution so Japanese text is preserved
+correctly in subprocess output and generated artifacts.
+
 ## Running Modes
 
 | Mode | Command | Use Case |
@@ -180,6 +208,11 @@ This starter includes a comprehensive suite of scripts for deploying to air-gapp
 5. Add script execution with `if mo.app_meta().mode == "script":`
 6. Add deployment to `prefect.yaml`
 7. Deploy: `prefect deploy --name my-workflow-prod`
+
+For an IR monitor workflow, use `notebooks/ir/ir_webchanges_monitor.py` as the reference:
+- keep reusable parsing and normalization logic under `src/services/ir_monitor/`
+- keep the Prefect flow in the notebook
+- point `prefect.yaml` directly at the notebook entrypoint
 
 ## Troubleshooting
 

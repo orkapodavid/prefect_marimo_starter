@@ -1,0 +1,17 @@
+===========================================================================
+CHANGED: mitsubishi_corp_ir_ja
+===========================================================================
+
+---------------------------------------------------------------------------
+CHANGED: mitsubishi_corp_ir_ja (https://example.co.jp/jp/ir/)
+---------------------------------------------------------------------------
+
+--- @ Tue, 24 Mar 2026 13:10:04 +0800 (HKT)
++++ @ Tue, 24 Mar 2026 13:10:05 +0800 (HKT)
+/**Comparison type: Additions only**
++ITEM_KEY=https://example.co.jp/jp/ir/files/notice-20260319.pdf | DATE=2026-03-19 | TITLE=適時開示資料 | URL=https://example.co.jp/jp/ir/files/notice-20260319.pdf | TYPE=pdf | LANG=ja
+---------------------------------------------------------------------------
+
+
+--
+Checked 1 source in 0.025 seconds with webchanges 3.34.2.

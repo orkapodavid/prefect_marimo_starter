@@ -1,6 +1,5 @@
 """Unit tests for ASX scraper filters."""
 
-import pytest
 from services.asx_scraper.filters import AnnouncementFilters
 
 

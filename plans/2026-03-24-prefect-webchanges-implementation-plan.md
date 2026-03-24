@@ -1,10 +1,20 @@
 # Japanese IR Webchanges Monitor Implementation Plan
 
+> **Status:** COMPLETE
+> **Completed:** 2026-03-24
+> **Total tasks:** 13
+> **Tasks completed:** 13
+> **Deviations:** 9 (documented inline)
+> **Test count:** 42 tests, all passing
+> **Blocking issues:** None
+
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
 **Goal:** Add a repo-native Japanese IR monitoring workflow that runs from a Marimo notebook, uses webchanges for stateful diffing, and reports meaningful changes for one or more company IR targets.
 
 **Architecture:** Keep orchestration inside `notebooks/ir/ir_webchanges_monitor.py` and push reusable config, normalization, webchanges, artifact, and notification logic into `src/services/ir_monitor/`. The implementation must preserve durable webchanges state across runs, use a structured changed-jobs sidecar as the primary parse source, and group reporting by company before target/page.
+
+> **Actual:** `webchanges==3.34.2` does not expose the changed-jobs env payload assumed by the plan, so the final runtime implementation treats stdout as the diff source of truth and enriches parsed events from config metadata; the structured payload remains optional and is only used when valid sidecar data is supplied.
 
 **Tech Stack:** Python 3.12, Prefect 3, Marimo, webchanges, pydantic, pydantic-settings, PyYAML, BeautifulSoup4, lxml, pypdf, pytest, ruff
 
@@ -55,6 +65,8 @@ ir_monitor_webhook_url: str = Field(default="")
 Also:
 - pin `webchanges` to an explicit version in `pyproject.toml`
 - add optional browser support or document it as a runtime prerequisite
+
+> **Actual:** Pinned `webchanges==3.34.2` from the current PyPI release and added an optional `browser` extra via `webchanges[use-browser]==3.34.2`; also updated `uv.lock` because the repo uses `uv`-managed lockfiles.
 
 **Step 4: Run test to verify it passes**
 
@@ -285,6 +297,8 @@ def test_generic_jp_ir_news_normalizes_to_stable_sorted_lines():
     assert "TYPE=pdf | LANG=ja" in output
 ```
 
+> **Actual:** Expanded the task test coverage to include English HTML and JSON feed normalizers as well, and later added regression coverage for noisy page chrome, duplicate item keys, and split date fragments; the final HTML normalizers use repeated dated-container selection plus `ITEM_KEY` deduplication to suppress nav/footer noise while preserving stable item lines.
+
 **Step 2: Run test to verify it fails**
 
 Run: `uv run pytest tests/unit/ir_monitor/test_ir_monitor_normalizers.py -v`
@@ -477,6 +491,8 @@ Requirements:
 - generate reporter settings for a structured changed-jobs sidecar
 - suppress `new` notifications in generated config
 
+> **Actual:** Used webchanges' documented `additions_only: true` job directive, emitted the generated jobs file as multi-document YAML (the format `webchanges` actually accepts), removed custom top-level job metadata keys that the real loader rejects, and dropped the planned `run_command` sidecar reporter after verifying that `webchanges==3.34.2` does not expose usable per-job change payloads there.
+
 **Step 4: Run test to verify it passes**
 
 Run: `uv run pytest tests/unit/ir_monitor/test_ir_monitor_jobs_builder.py -v`
@@ -557,6 +573,8 @@ Requirements:
 - capture stdout, stderr, exit code, and sidecar artifact paths
 - keep subprocess commands deterministic and testable
 
+> **Actual:** Added `pytest-mock` to the repo's dev dependencies because the planned test uses the `mocker` fixture; the runner invokes the console `webchanges` entrypoint (not `python -m webchanges`, which fails with `webchanges==3.34.2` in this environment), merges newly initialized baseline IDs with existing metadata instead of overwriting it, and records new baselines only after `--prepare-jobs` succeeds.
+
 **Step 4: Run test to verify it passes**
 
 Run: `uv run pytest tests/unit/ir_monitor/test_ir_monitor_runner.py -v`
@@ -607,6 +625,8 @@ def test_parse_monitor_report_prefers_structured_changed_jobs_payload():
     assert parsed.events[0].company_id == "mitsubishi_corp"
     assert parsed.unchanged_target_ids == ["nagase_ir_en"]
 ```
+
+> **Actual:** Added explicit stdout-fallback tests and updated fixtures to match real `webchanges 3.34.2` console output, including duplicated summary/detail headers; the final parser ignores invalid sidecar payloads, extracts diff lines from stdout, and enriches company/page metadata from the monitor config.
 
 **Step 2: Run test to verify it fails**
 
@@ -722,6 +742,8 @@ Rules:
 - do not notify on `baseline_initialized` or no-change unless explicitly enabled
 - use webhook first when configured
 - otherwise fall back to log-only output
+
+> **Actual:** The notifier now also falls back to log-only on webhook delivery errors instead of failing the flow, and the notebook registers the generated Markdown summary as a Prefect artifact keyed by environment.
 
 **Step 4: Run test to verify it passes**
 
@@ -884,6 +906,86 @@ Expected: PASS
 **Step 5: Fix any issues found**
 
 If linting or tests revealed issues during Steps 1-4, fix them and commit the fixes only. Do not re-commit work already committed in Tasks 1-11.
+
+### Task 13: Add company registry and ticker-aware grouping metadata
+
+**Files:**
+- Modify: `src/services/ir_monitor/ir_monitor_models.py`
+- Modify: `src/services/ir_monitor/ir_monitor_config_loader.py`
+- Modify: `src/services/ir_monitor/ir_monitor_artifacts.py`
+- Modify: `src/services/ir_monitor/ir_monitor_notifier.py`
+- Modify: `src/services/ir_monitor/ir_monitor_report_parser.py`
+- Modify: `notebooks/ir/ir_webchanges_monitor.py`
+- Modify: `config/ir_monitor/ir_monitor_targets.example.yaml`
+- Modify: `docs/specs/prefect_webchanges.md`
+- Modify: `README.md`
+- Modify: `tests/unit/ir_monitor/test_ir_monitor_config_loader.py`
+- Modify: `tests/unit/ir_monitor/test_ir_monitor_artifacts.py`
+- Modify: `tests/unit/ir_monitor/test_ir_monitor_notifier.py`
+- Modify: `tests/unit/ir_monitor/test_ir_monitor_report_parser.py`
+
+**Step 1: Write the failing tests**
+
+Add tests that verify:
+- an optional top-level `companies` mapping resolves `company_name`, `ticker`, and `exchange` onto targets during config loading
+- target-level `company_name` still works when `companies` is absent
+- `companies[company_id].name` overrides a conflicting `company_name` on the target
+- artifact markdown headers render as `## Company Name (TICKER)` when a ticker exists and `## Company Name` otherwise
+- notification summaries include the ticker beside the company name
+- parser metadata enrichment propagates `ticker` and `exchange` into parsed change events
+
+**Step 2: Run tests to verify they fail**
+
+Run:
+- `uv run pytest tests/unit/ir_monitor/test_ir_monitor_config_loader.py -v`
+- `uv run pytest tests/unit/ir_monitor/test_ir_monitor_artifacts.py tests/unit/ir_monitor/test_ir_monitor_notifier.py -v`
+- `uv run pytest tests/unit/ir_monitor/test_ir_monitor_report_parser.py -v`
+
+Expected: FAIL because the models and display helpers do not yet understand the company registry metadata.
+
+**Step 3: Write minimal implementation**
+
+Implement:
+- `CompanyEntry` plus `companies` on `MonitorConfig`
+- optional `ticker` and `exchange` on `MonitorTarget` and `MonitorChangeEvent`
+- config-loader resolution from `companies[company_id]` onto each target while preserving backward compatibility
+- ticker-aware grouping labels in artifacts and notifications
+- ticker/exchange propagation through notebook metadata enrichment and the report parser
+- example config and docs updates for the new `companies` section
+
+Constraints:
+- do not remove `company_name` from `MonitorTarget`
+- do not change the normalizers, webchanges runner, or jobs builder
+- keep targets keyed by `company_id` and resolve display identity from the registry when present
+
+> **Actual:** Follow-up review fixes extracted the duplicated company display formatter into a shared helper, exported `CompanyEntry` from the package root, and added validation that every target resolves to a non-empty `company_name` after company-registry merging.
+
+**Step 4: Run tests to verify they pass**
+
+Run:
+- `uv run pytest tests/unit/ir_monitor/test_ir_monitor_config_loader.py -v`
+- `uv run pytest tests/unit/ir_monitor/test_ir_monitor_artifacts.py tests/unit/ir_monitor/test_ir_monitor_notifier.py -v`
+- `uv run pytest tests/unit/ir_monitor/test_ir_monitor_report_parser.py -v`
+
+Expected: PASS
+
+**Step 5: Run full verification**
+
+Run:
+- `uv run pytest tests/unit/ir_monitor -v`
+- `uv run pytest tests/unit/test_config.py tests/unit/test_prefect_notifications.py -v`
+- `uv run ruff check src/services/ir_monitor scripts/ir_monitor notebooks/ir/ir_webchanges_monitor.py tests/unit/ir_monitor`
+- `uv run marimo check notebooks/ir/ir_webchanges_monitor.py`
+
+Expected: PASS
+
+**Step 6: Commit**
+
+Use separate commits for:
+- plan/task addition
+- model + config-loader support
+- artifact/notifier/parser/notebook display metadata propagation
+- example config + docs refresh
 
 ## Notes for the implementing engineer
 

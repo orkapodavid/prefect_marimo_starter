@@ -147,7 +147,7 @@ def run_ir_webchanges_monitor(
     config_path: str = "./config/ir_monitor/ir_monitor_targets.yaml",
     environment: str = "dev",
     workspace_dir: str | None = None,
-    notify_on_no_change: bool = False,
+    notify_on_no_change: bool | None = None,
     dry_run: bool = False,
 ) -> dict:
     ...
@@ -369,17 +369,28 @@ User-facing config should live in:
 Example:
 
 ```yaml
+companies:
+  mitsubishi_corp:
+    name: Mitsubishi Corporation
+    ticker: 8058.T
+    exchange: TSE
+  nagase:
+    name: NAGASE & Co., Ltd.
+    ticker: 8012.T
+    exchange: TSE
+
 defaults:
   timezone: Asia/Tokyo
+  report_timezone: Asia/Tokyo
+
+runtime:
   notify_on_no_change: false
   workspace_dir: ./data/ir_monitor/prod
   schedule_cron: "0 * * * 1-5"
-  report_timezone: Asia/Tokyo
 
 targets:
   - id: mitsubishi_corp_ir_ja
     company_id: mitsubishi_corp
-    company_name: Mitsubishi Corporation
     page_label: Japanese IR landing page
     country: JP
     language: ja
@@ -387,8 +398,6 @@ targets:
     user_visible_url: https://www.mitsubishicorp.com/jp/ja/ir/
     target_kind: html_list
     use_browser: false
-    selector_type: custom_script
-    selector: ""
     normalizer: generic_jp_ir_news
     diff_mode: additions_only
     enabled: true
@@ -396,7 +405,6 @@ targets:
 
   - id: nagase_ir_en
     company_id: nagase
-    company_name: NAGASE & Co., Ltd.
     page_label: English IR page
     country: JP
     language: en
@@ -404,15 +412,12 @@ targets:
     user_visible_url: https://www.nagase.co.jp/english/ir/
     target_kind: html_list
     use_browser: false
-    selector_type: custom_script
-    selector: ""
     normalizer: generic_en_ir_news
     diff_mode: additions_only
     enabled: true
 
   - id: mitsubishi_corp_notice_pdf
     company_id: mitsubishi_corp
-    company_name: Mitsubishi Corporation
     page_label: In-place PDF notice
     country: JP
     language: ja
@@ -428,10 +433,14 @@ targets:
 Required target schema rules:
 
 - `id` must be unique across all targets.
+- `companies` is optional; when present, it is keyed by `company_id` and supplies canonical `name`, `ticker`, and `exchange` metadata for any matching targets.
+- `runtime` is optional and carries run-level settings such as `notify_on_no_change`, `workspace_dir`, and `schedule_cron`.
 - `company_id` groups multiple targets that belong to the same issuer.
+- `company_name` remains a valid target field for backward compatibility, but a matching `companies[company_id].name` takes precedence when both are provided.
 - `page_label` is the human-readable label used in notifications and artifacts.
 - `target_kind` must be an explicit enum such as `html_list`, `json_feed`, or `pdf_document`.
 - `user_visible_url` is the URL shown in reports when the monitored URL is an API endpoint or a synthetic unique URL.
+- `selector_type` currently supports only `custom_script` and should default automatically when omitted.
 - `diff_mode` must default by `target_kind` but remain overrideable per target.
 - JSON targets must support optional request settings such as method, headers, and body.
 - PDF targets must support direct PDF URLs without browser rendering.
@@ -443,6 +452,7 @@ Persist state inside the repo-configurable data area.
 Default workspace resolution:
 
 - `workspace_dir` flow parameter if provided
+- otherwise `config.runtime.workspace_dir` if provided
 - otherwise `get_settings().data_directory / "ir_monitor" / environment`
 
 Each run should use durable directories such as:

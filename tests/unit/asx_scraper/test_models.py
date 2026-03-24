@@ -1,6 +1,5 @@
 """Unit tests for ASX scraper models."""
 
-import pytest
 from services.asx_scraper.models import (
     Company,
     Announcement,

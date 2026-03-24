@@ -3,7 +3,6 @@ ASX Scraper Service - Main orchestrator for scraping ASX announcements.
 Combines PIPE, general announcements, and Appendix 5B functionality.
 """
 
-import os
 import re
 import logging
 import random
@@ -17,7 +16,7 @@ from .http_client import HttpClient
 from .html_parser import HtmlParser
 from .pdf_handler import PdfHandler
 from .filters import AnnouncementFilters
-from .models import Company, Announcement, ScrapeResult, ScrapeSummary, Section8Data
+from .models import Company, Announcement, ScrapeResult, ScrapeSummary
 
 logger = logging.getLogger(__name__)
 
@@ -508,7 +507,6 @@ class AsxScraperService:
             report_date = None
         
         # Convert matched_keywords list to JSON string
-        import json
         matched_keywords_str = json.dumps(result.matched_keywords) if result.matched_keywords else None
         
         # Get Section 8 values

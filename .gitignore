@@ -49,3 +49,6 @@ prefect.db
 htmlcov/
 .pytest_cache/
 .ruff_cache/
+
+# Repo-local scratch directory
+tmp/
