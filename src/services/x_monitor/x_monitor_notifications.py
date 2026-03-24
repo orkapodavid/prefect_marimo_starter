@@ -1,5 +1,6 @@
 """Notification helpers and provider contracts for X monitor."""
 
+from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import Protocol
 
@@ -9,11 +10,12 @@ from sqlalchemy.engine import Engine
 from services.x_monitor.x_monitor_tables import tbl_x_monitor_notification_events
 
 
-class SendResult(Protocol):
-    """Structural type shared by notification providers."""
+@dataclass(slots=True)
+class SendResult:
+    """Outcome of an email delivery attempt."""
 
     sent: bool
-    error: str | None
+    error: str | None = None
 
 
 class EmailProvider(Protocol):

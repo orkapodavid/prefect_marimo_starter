@@ -1,0 +1,10 @@
+{{ subject_prefix }} Operator alert
+
+Event type: {{ event_type }}
+Severity: {{ severity }}
+Message: {{ message }}
+
+{% if details %}
+Details:
+{{ details }}
+{% endif %}

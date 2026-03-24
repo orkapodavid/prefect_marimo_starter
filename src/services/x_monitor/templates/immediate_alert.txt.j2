@@ -1,0 +1,9 @@
+{{ subject_prefix }} Immediate match for @{{ username }}
+
+Posted at: {{ post.created_at }}
+URL: {{ post.url }}
+Flags: reply={{ post.is_reply }}, retweet={{ post.is_retweet }}, media={{ post.has_media }}
+Matched rules: {{ matched_rules | join(", ") }}
+
+{{ post.text_raw }}
+

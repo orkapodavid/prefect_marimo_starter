@@ -1,0 +1,18 @@
+<html>
+  <body>
+    <h2>{{ subject_prefix }} Daily digest</h2>
+    <p>Window: {{ window_start }} to {{ window_end }}</p>
+    {% for username, posts in posts_by_account.items() %}
+    <section>
+      <h3>@{{ username }} ({{ posts | length }})</h3>
+      {% for post in posts %}
+      <article>
+        <p><strong>{{ post.created_at }}</strong> <a href="{{ post.url }}">{{ post.url }}</a></p>
+        <pre>{{ post.text_raw }}</pre>
+      </article>
+      {% endfor %}
+    </section>
+    {% endfor %}
+  </body>
+</html>
+

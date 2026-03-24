@@ -1,0 +1,14 @@
+<html>
+  <body>
+    <h2>{{ subject_prefix }} Immediate match for @{{ username }}</h2>
+    <p><strong>Posted at:</strong> {{ post.created_at }}</p>
+    <p><strong>URL:</strong> <a href="{{ post.url }}">{{ post.url }}</a></p>
+    <p>
+      <strong>Flags:</strong>
+      reply={{ post.is_reply }}, retweet={{ post.is_retweet }}, media={{ post.has_media }}
+    </p>
+    <p><strong>Matched rules:</strong> {{ matched_rules | join(", ") }}</p>
+    <pre>{{ post.text_raw }}</pre>
+  </body>
+</html>
+

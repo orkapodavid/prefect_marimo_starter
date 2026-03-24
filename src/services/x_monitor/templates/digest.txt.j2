@@ -1,0 +1,12 @@
+{{ subject_prefix }} Daily digest
+Window: {{ window_start }} to {{ window_end }}
+
+{% for username, posts in posts_by_account.items() %}
+@{{ username }} ({{ posts | length }})
+{% for post in posts %}
+- {{ post.created_at }} {{ post.url }}
+  {{ post.text_raw }}
+{% endfor %}
+
+{% endfor %}
+
