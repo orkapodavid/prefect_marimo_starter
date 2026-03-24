@@ -53,7 +53,6 @@ def run_webchanges_command(workspace: WorkspacePaths, new_target_ids: list[str])
             capture_output=True,
             text=True,
         )
-        _write_baseline_metadata(workspace.baseline_metadata_path, new_target_ids)
         if prepare_result.returncode != 0:
             return CommandResult(
                 exit_code=prepare_result.returncode,
@@ -62,6 +61,7 @@ def run_webchanges_command(workspace: WorkspacePaths, new_target_ids: list[str])
                 changed_jobs_path=workspace.changed_jobs_path,
                 baseline_target_ids=new_target_ids,
             )
+        _write_baseline_metadata(workspace.baseline_metadata_path, new_target_ids)
 
     result = subprocess.run(
         _build_command(workspace),

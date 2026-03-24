@@ -1,0 +1,4 @@
+{
+  "WEBCHANGES_REPORT_CONFIG_JSON": "{\"report\": {\"stdout\": {\"enabled\": true}}}",
+  "WEBCHANGES_REPORT_REPORTED_JOBS_JSON": "{\"report\": {\"stdout\": {\"enabled\": true}}}"
+}

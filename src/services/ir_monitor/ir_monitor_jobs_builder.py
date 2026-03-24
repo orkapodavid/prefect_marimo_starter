@@ -32,25 +32,11 @@ def _normalizer_command(target: MonitorTarget) -> str:
     )
 
 
-def _changed_jobs_command(changed_jobs_path: Path) -> str:
-    python_code = (
-        "import os, pathlib; "
-        f"pathlib.Path(r'{changed_jobs_path}').write_text("
-        "os.environ.get('WEBCHANGES_CHANGED_JOBS_JSON', ''), encoding='utf-8')"
-    )
-    return subprocess.list2cmdline([sys.executable, "-c", python_code])
-
-
 def _build_job(target: MonitorTarget, duplicate_count: int) -> dict:
     job = {
         "name": target.id,
         "url": _effective_job_url(target, duplicate_count),
         "user_visible_url": target.user_visible_url,
-        "company_id": target.company_id,
-        "company_name": target.company_name,
-        "page_label": target.page_label,
-        "target_kind": target.target_kind,
-        "diff_mode": target.diff_mode,
         "filters": [{"execute": _normalizer_command(target)}],
     }
 
@@ -99,7 +85,7 @@ def build_workspace_files(config: MonitorConfig, workspace_dir: Path) -> Workspa
         _build_job(target, duplicate_counts[target.page_url]) for target in enabled_targets
     ]
     workspace.jobs_path.write_text(
-        yaml.safe_dump(jobs_payload, sort_keys=False, allow_unicode=True),
+        yaml.safe_dump_all(jobs_payload, sort_keys=False, allow_unicode=True),
         encoding="utf-8",
     )
 
@@ -119,10 +105,6 @@ def build_workspace_files(config: MonitorConfig, workspace_dir: Path) -> Workspa
             },
             "stdout": {
                 "enabled": True,
-            },
-            "run_command": {
-                "enabled": True,
-                "command": _changed_jobs_command(workspace.changed_jobs_path),
             },
         },
     }

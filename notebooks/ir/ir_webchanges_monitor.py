@@ -23,8 +23,10 @@ with app.setup:
     from datetime import datetime
     import json
     from pathlib import Path
+    from zoneinfo import ZoneInfo
 
     from prefect import flow, task
+    from prefect.artifacts import create_markdown_artifact
 
     from services.ir_monitor.ir_monitor_artifacts import (
         write_run_artifacts as write_run_artifacts_service,
@@ -61,6 +63,18 @@ with app.setup:
         except json.JSONDecodeError:
             return set()
         return set(payload.get("baseline_target_ids", []))
+
+    def _target_metadata_by_id(config: MonitorConfig) -> dict[str, dict[str, str]]:
+        return {
+            target.id: {
+                "company_id": target.company_id,
+                "company_name": target.company_name,
+                "page_label": target.page_label,
+                "diff_mode": target.diff_mode or "additions_only",
+            }
+            for target in config.targets
+            if target.enabled
+        }
 
 
 # ============================================================
@@ -119,8 +133,9 @@ def parse_webchanges_output(
     command_result: CommandResult,
     enabled_target_ids: list[str],
     baseline_target_ids: list[str],
+    target_metadata_by_id: dict[str, dict[str, str]],
 ) -> ParsedMonitorReport:
-    """Parse structured changed-jobs output and fall back to stdout."""
+    """Parse webchanges output and enrich events from config metadata."""
     changed_jobs_payload = None
     if command_result.changed_jobs_path.exists():
         payload = command_result.changed_jobs_path.read_text(encoding="utf-8").strip()
@@ -132,6 +147,7 @@ def parse_webchanges_output(
         changed_jobs_payload=changed_jobs_payload,
         enabled_target_ids=enabled_target_ids,
         baseline_target_ids=baseline_target_ids,
+        target_metadata_by_id=target_metadata_by_id,
     )
 
 
@@ -142,14 +158,21 @@ def write_artifacts(
     parsed_report: ParsedMonitorReport,
     raw_report: str,
     run_label: str,
+    environment: str,
 ) -> ArtifactPaths:
     """Write raw and summarized artifacts for the current run."""
-    return write_run_artifacts_service(
+    artifact_paths = write_run_artifacts_service(
         workspace_dir=workspace.artifacts_dir,
         raw_report=raw_report,
         parsed_events=[event.model_dump() for event in parsed_report.events],
         run_label=run_label,
     )
+    create_markdown_artifact(
+        markdown=artifact_paths.changes_markdown_path.read_text(encoding="utf-8"),
+        key=f"ir-monitor-summary-{environment}",
+        description=f"IR monitor summary for {run_label}",
+    )
+    return artifact_paths
 
 
 @app.function
@@ -194,6 +217,7 @@ def run_ir_webchanges_monitor(
         workspace_dir=workspace_dir,
     )
     enabled_target_ids = [target.id for target in config.targets if target.enabled]
+    target_metadata_by_id = _target_metadata_by_id(config)
     known_baseline_ids = _load_known_baseline_ids(workspace.baseline_metadata_path)
     new_target_ids = sorted(set(enabled_target_ids) - known_baseline_ids)
 
@@ -206,14 +230,18 @@ def run_ir_webchanges_monitor(
         command_result=command_result,
         enabled_target_ids=enabled_target_ids,
         baseline_target_ids=new_target_ids,
+        target_metadata_by_id=target_metadata_by_id,
     )
-    run_label = datetime.now().astimezone().isoformat(timespec="seconds").replace(":", "-")
+    run_label = datetime.now(ZoneInfo(config.defaults.report_timezone)).isoformat(
+        timespec="seconds"
+    ).replace(":", "-")
     raw_report = command_result.stdout or command_result.stderr
     artifact_paths = write_artifacts(
         workspace=workspace,
         parsed_report=parsed_report,
         raw_report=raw_report,
         run_label=run_label,
+        environment=environment,
     )
     notification_result = notify_if_needed(
         parsed_report=parsed_report,

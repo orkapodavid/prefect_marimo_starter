@@ -52,13 +52,17 @@ def notify_if_needed(
 
     message = _build_message(parsed_events, environment, run_label, artifact_path)
     if changed_events and webhook_url:
-        response = requests.post(
-            webhook_url,
-            json={"text": message},
-            timeout=30,
-        )
-        response.raise_for_status()
-        return NotificationResult(sent=True, channel="webhook", message=message)
+        try:
+            response = requests.post(
+                webhook_url,
+                json={"text": message},
+                timeout=30,
+            )
+            response.raise_for_status()
+        except requests.RequestException:
+            LOGGER.exception("IR monitor webhook notification failed; falling back to log output.")
+        else:
+            return NotificationResult(sent=True, channel="webhook", message=message)
 
     LOGGER.info("%s", json.dumps({"message": message}, ensure_ascii=False))
     return NotificationResult(sent=False, channel="log", message=message)

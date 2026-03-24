@@ -13,5 +13,7 @@ def test_ir_monitor_notebook_contains_required_flow_contract():
     assert "def parse_webchanges_output(" in notebook_text
     assert "def write_artifacts(" in notebook_text
     assert "def notify_if_needed(" in notebook_text
+    assert "create_markdown_artifact" in notebook_text
+    assert "ZoneInfo(" in notebook_text
     assert 'mo.app_meta().mode == "edit"' in notebook_text
     assert 'mo.app_meta().mode == "script"' in notebook_text
