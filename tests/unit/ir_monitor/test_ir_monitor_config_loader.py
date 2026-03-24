@@ -160,3 +160,28 @@ targets:
     assert config.targets[0].company_name == "Stella Pharma"
     assert config.targets[0].ticker == "STLA.VN"
     assert config.targets[0].exchange == "HOSE"
+
+
+def test_load_monitor_config_requires_company_name_when_company_registry_missing(
+    tmp_path: Path,
+):
+    config_path = tmp_path / "targets.yaml"
+    config_path.write_text(
+        """
+targets:
+  - id: unnamed_target
+    company_id: unnamed_company
+    page_label: Missing company name
+    page_url: https://example.com/news
+    user_visible_url: https://example.com/news
+    target_kind: html_list
+    selector_type: custom_script
+    normalizer: generic_en_ir_news
+    language: en
+    enabled: true
+""",
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ValueError, match="company_name"):
+        load_monitor_config(config_path)

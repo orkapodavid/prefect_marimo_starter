@@ -72,6 +72,10 @@ class MonitorConfig(BaseModel):
             if target.id in seen_target_ids:
                 raise ValueError(f"Duplicate target id: {target.id}")
             seen_target_ids.add(target.id)
+            if not target.company_name.strip():
+                raise ValueError(
+                    f"Target {target.id} must resolve to a non-empty company_name"
+                )
         return self
 
 
