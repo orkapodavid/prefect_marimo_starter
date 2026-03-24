@@ -28,6 +28,14 @@ dependencies = [
     "lxml>=5.0.0",
     "pypdf>=5.0.0",
     "openpyxl>=3.1.5",
+    "alembic>=1.13.0",
+    "jinja2>=3.1.0",
+    "twscrape>=0.12.0",
+    "tenacity>=8.2.0",
+    "google-api-python-client>=2.100.0",
+    "google-auth>=2.23.0",
+    "google-auth-oauthlib>=1.1.0",
+    "email-validator>=2.1.0",
 ]
 
 [project.optional-dependencies]
@@ -38,6 +46,8 @@ browser = [
 dev = [
     "pytest>=8.0.0",
     "pytest-mock>=3.14.0",
+    "pytest-asyncio>=0.23.0",
+    "freezegun>=1.4.0",
     "ruff>=0.4.0",
     "pre-commit>=3.0.0",
 ]
@@ -71,4 +81,6 @@ python_functions = ["test_*"]
 dev = [
     "pytest>=9.0.2",
     "pytest-mock>=3.14.0",
+    "pytest-asyncio>=0.23.0",
+    "freezegun>=1.4.0",
 ]

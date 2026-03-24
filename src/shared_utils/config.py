@@ -83,6 +83,37 @@ class Settings(BaseSettings):
     ir_monitor_report_timezone: str = Field(default="Asia/Tokyo")
     ir_monitor_webhook_url: str = Field(default="")
 
+    # X Monitor
+    x_monitor_database_url: str = Field(default="postgresql://localhost:5432/x_monitor")
+    x_monitor_config_path: Path = Field(
+        default=Path("./config/x_monitor/x_monitor_targets.yaml")
+    )
+    x_monitor_workspace_dir: Path = Field(default=Path("./data/x_monitor"))
+    x_monitor_twscrape_accounts_db: Path = Field(
+        default=Path("./data/x_monitor/twscrape/accounts.db")
+    )
+    x_monitor_gmail_provider: str = Field(default="gmail_smtp")
+    x_monitor_gmail_smtp_host: str = Field(default="smtp.gmail.com")
+    x_monitor_gmail_smtp_port: int = Field(default=587)
+    x_monitor_gmail_smtp_username: str = Field(default="")
+    x_monitor_gmail_smtp_password: str = Field(default="")
+    x_monitor_gmail_smtp_from: str = Field(default="")
+    x_monitor_gmail_smtp_use_starttls: bool = Field(default=True)
+    x_monitor_gmail_api_credentials_file: str = Field(default="")
+    x_monitor_gmail_api_token_file: str = Field(default="")
+    x_monitor_gmail_api_from: str = Field(default="")
+    x_monitor_gmail_api_use_adc: bool = Field(default=False)
+    x_monitor_poll_cron: str = Field(default="*/5 * * * *")
+    x_monitor_digest_cron: str = Field(default="0 8 * * *")
+    x_monitor_health_cron: str = Field(default="*/30 * * * *")
+    x_monitor_timezone: str = Field(default="Asia/Singapore")
+    x_monitor_poll_batch_limit: int = Field(default=25)
+    x_monitor_immediate_alerts_enabled: bool = Field(default=True)
+    x_monitor_daily_digest_enabled: bool = Field(default=True)
+    x_monitor_subject_prefix: str = Field(default="[X Monitor]")
+    x_monitor_operator_emails: str = Field(default="")
+    x_monitor_consecutive_failure_threshold: int = Field(default=3)
+
 
 def resolve_pg_backup_password(settings: Settings | None = None) -> str:
     """Resolve the PostgreSQL backup password without logging secrets."""
