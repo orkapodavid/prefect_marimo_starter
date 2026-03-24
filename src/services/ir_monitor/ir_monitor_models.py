@@ -86,6 +86,8 @@ class MonitorChangeEvent(BaseModel):
     diff_mode: str = "additions_only"
     added_lines: list[str] = Field(default_factory=list)
     removed_lines: list[str] = Field(default_factory=list)
+    before_lines: list[str] = Field(default_factory=list)
+    after_lines: list[str] = Field(default_factory=list)
     error_message: str | None = None
 
 
@@ -121,3 +123,14 @@ class CommandResult(BaseModel):
     stderr: str
     changed_jobs_path: Path
     baseline_target_ids: list[str] = Field(default_factory=list)
+
+
+class ParsedMonitorReport(BaseModel):
+    """Parsed change summary from a webchanges run."""
+
+    events: list[MonitorChangeEvent] = Field(default_factory=list)
+    changed_count: int = 0
+    unchanged_target_ids: list[str] = Field(default_factory=list)
+    failed_target_ids: list[str] = Field(default_factory=list)
+    baseline_target_ids: list[str] = Field(default_factory=list)
+    raw_report: str = ""

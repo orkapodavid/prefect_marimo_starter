@@ -1,0 +1,14 @@
+[
+  {
+    "name": "mitsubishi_corp_ir_ja",
+    "company_id": "mitsubishi_corp",
+    "company_name": "Mitsubishi Corporation",
+    "page_label": "Japanese IR page",
+    "diff_mode": "additions_only",
+    "status": "changed",
+    "added_lines": [
+      "ITEM_KEY=https://example.co.jp/jp/ir/files/notice-20260319.pdf | DATE=2026-03-19 | TITLE=適時開示資料 | URL=https://example.co.jp/jp/ir/files/notice-20260319.pdf | TYPE=pdf | LANG=ja"
+    ],
+    "removed_lines": []
+  }
+]
