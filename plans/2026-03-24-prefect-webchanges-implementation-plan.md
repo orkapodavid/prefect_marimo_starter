@@ -4,8 +4,8 @@
 > **Completed:** 2026-03-24
 > **Total tasks:** 12
 > **Tasks completed:** 12
-> **Deviations:** 8 (documented inline)
-> **Test count:** 32 tests, all passing
+> **Deviations:** 9 (documented inline)
+> **Test count:** 34 tests, all passing
 > **Blocking issues:** None
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
@@ -297,7 +297,7 @@ def test_generic_jp_ir_news_normalizes_to_stable_sorted_lines():
     assert "TYPE=pdf | LANG=ja" in output
 ```
 
-> **Actual:** Expanded the task test coverage to include English HTML and JSON feed normalizers as well, because the spec requires automated coverage for both paths in addition to the JP normalizer.
+> **Actual:** Expanded the task test coverage to include English HTML and JSON feed normalizers as well, and later added regression coverage for noisy page chrome, duplicate item keys, and split date fragments; the final HTML normalizers use repeated dated-container selection plus `ITEM_KEY` deduplication to suppress nav/footer noise while preserving stable item lines.
 
 **Step 2: Run test to verify it fails**
 
