@@ -369,6 +369,16 @@ User-facing config should live in:
 Example:
 
 ```yaml
+companies:
+  mitsubishi_corp:
+    name: Mitsubishi Corporation
+    ticker: 8058.T
+    exchange: TSE
+  nagase:
+    name: NAGASE & Co., Ltd.
+    ticker: 8012.T
+    exchange: TSE
+
 defaults:
   timezone: Asia/Tokyo
   notify_on_no_change: false
@@ -379,7 +389,6 @@ defaults:
 targets:
   - id: mitsubishi_corp_ir_ja
     company_id: mitsubishi_corp
-    company_name: Mitsubishi Corporation
     page_label: Japanese IR landing page
     country: JP
     language: ja
@@ -396,7 +405,6 @@ targets:
 
   - id: nagase_ir_en
     company_id: nagase
-    company_name: NAGASE & Co., Ltd.
     page_label: English IR page
     country: JP
     language: en
@@ -412,7 +420,6 @@ targets:
 
   - id: mitsubishi_corp_notice_pdf
     company_id: mitsubishi_corp
-    company_name: Mitsubishi Corporation
     page_label: In-place PDF notice
     country: JP
     language: ja
@@ -428,7 +435,9 @@ targets:
 Required target schema rules:
 
 - `id` must be unique across all targets.
+- `companies` is optional; when present, it is keyed by `company_id` and supplies canonical `name`, `ticker`, and `exchange` metadata for any matching targets.
 - `company_id` groups multiple targets that belong to the same issuer.
+- `company_name` remains a valid target field for backward compatibility, but a matching `companies[company_id].name` takes precedence when both are provided.
 - `page_label` is the human-readable label used in notifications and artifacts.
 - `target_kind` must be an explicit enum such as `html_list`, `json_feed`, or `pdf_document`.
 - `user_visible_url` is the URL shown in reports when the monitored URL is an API endpoint or a synthetic unique URL.

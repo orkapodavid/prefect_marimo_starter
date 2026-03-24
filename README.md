@@ -106,7 +106,9 @@ prefect worker start --pool windows-process-pool --type process
 
 The repo includes an **IR monitor** workflow at `notebooks/ir/ir_webchanges_monitor.py`.
 It uses pinned `webchanges==3.34.2` for durable snapshot diffing and expects target
-configuration under `config/ir_monitor/`.
+configuration under `config/ir_monitor/`. The example config supports an optional
+top-level `companies` registry so `name`, `ticker`, and `exchange` can be defined once
+per `company_id` and then reused across multiple targets.
 
 For local execution:
 
