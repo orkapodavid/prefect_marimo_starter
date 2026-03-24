@@ -1,0 +1,19 @@
+defaults:
+  timezone: Asia/Tokyo
+  report_timezone: Asia/Tokyo
+  notify_on_no_change: false
+  workspace_dir: ./data/ir_monitor/prod
+  schedule_cron: "0 * * * 1-5"
+
+targets:
+  - id: mitsubishi_corp_ir_ja
+    company_id: mitsubishi_corp
+    company_name: Mitsubishi Corporation
+    page_label: Japanese IR page
+    page_url: https://example.com/ir
+    user_visible_url: https://example.com/ir
+    target_kind: html_list
+    selector_type: custom_script
+    selector: ""
+    normalizer: generic_jp_ir_news
+    enabled: true
