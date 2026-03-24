@@ -907,6 +907,84 @@ Expected: PASS
 
 If linting or tests revealed issues during Steps 1-4, fix them and commit the fixes only. Do not re-commit work already committed in Tasks 1-11.
 
+### Task 13: Add company registry and ticker-aware grouping metadata
+
+**Files:**
+- Modify: `src/services/ir_monitor/ir_monitor_models.py`
+- Modify: `src/services/ir_monitor/ir_monitor_config_loader.py`
+- Modify: `src/services/ir_monitor/ir_monitor_artifacts.py`
+- Modify: `src/services/ir_monitor/ir_monitor_notifier.py`
+- Modify: `src/services/ir_monitor/ir_monitor_report_parser.py`
+- Modify: `notebooks/ir/ir_webchanges_monitor.py`
+- Modify: `config/ir_monitor/ir_monitor_targets.example.yaml`
+- Modify: `docs/specs/prefect_webchanges.md`
+- Modify: `README.md`
+- Modify: `tests/unit/ir_monitor/test_ir_monitor_config_loader.py`
+- Modify: `tests/unit/ir_monitor/test_ir_monitor_artifacts.py`
+- Modify: `tests/unit/ir_monitor/test_ir_monitor_notifier.py`
+- Modify: `tests/unit/ir_monitor/test_ir_monitor_report_parser.py`
+
+**Step 1: Write the failing tests**
+
+Add tests that verify:
+- an optional top-level `companies` mapping resolves `company_name`, `ticker`, and `exchange` onto targets during config loading
+- target-level `company_name` still works when `companies` is absent
+- `companies[company_id].name` overrides a conflicting `company_name` on the target
+- artifact markdown headers render as `## Company Name (TICKER)` when a ticker exists and `## Company Name` otherwise
+- notification summaries include the ticker beside the company name
+- parser metadata enrichment propagates `ticker` and `exchange` into parsed change events
+
+**Step 2: Run tests to verify they fail**
+
+Run:
+- `uv run pytest tests/unit/ir_monitor/test_ir_monitor_config_loader.py -v`
+- `uv run pytest tests/unit/ir_monitor/test_ir_monitor_artifacts.py tests/unit/ir_monitor/test_ir_monitor_notifier.py -v`
+- `uv run pytest tests/unit/ir_monitor/test_ir_monitor_report_parser.py -v`
+
+Expected: FAIL because the models and display helpers do not yet understand the company registry metadata.
+
+**Step 3: Write minimal implementation**
+
+Implement:
+- `CompanyEntry` plus `companies` on `MonitorConfig`
+- optional `ticker` and `exchange` on `MonitorTarget` and `MonitorChangeEvent`
+- config-loader resolution from `companies[company_id]` onto each target while preserving backward compatibility
+- ticker-aware grouping labels in artifacts and notifications
+- ticker/exchange propagation through notebook metadata enrichment and the report parser
+- example config and docs updates for the new `companies` section
+
+Constraints:
+- do not remove `company_name` from `MonitorTarget`
+- do not change the normalizers, webchanges runner, or jobs builder
+- keep targets keyed by `company_id` and resolve display identity from the registry when present
+
+**Step 4: Run tests to verify they pass**
+
+Run:
+- `uv run pytest tests/unit/ir_monitor/test_ir_monitor_config_loader.py -v`
+- `uv run pytest tests/unit/ir_monitor/test_ir_monitor_artifacts.py tests/unit/ir_monitor/test_ir_monitor_notifier.py -v`
+- `uv run pytest tests/unit/ir_monitor/test_ir_monitor_report_parser.py -v`
+
+Expected: PASS
+
+**Step 5: Run full verification**
+
+Run:
+- `uv run pytest tests/unit/ir_monitor -v`
+- `uv run pytest tests/unit/test_config.py tests/unit/test_prefect_notifications.py -v`
+- `uv run ruff check src/services/ir_monitor scripts/ir_monitor notebooks/ir/ir_webchanges_monitor.py tests/unit/ir_monitor`
+- `uv run marimo check notebooks/ir/ir_webchanges_monitor.py`
+
+Expected: PASS
+
+**Step 6: Commit**
+
+Use separate commits for:
+- plan/task addition
+- model + config-loader support
+- artifact/notifier/parser/notebook display metadata propagation
+- example config + docs refresh
+
 ## Notes for the implementing engineer
 
 - Use `docs/specs/prefect_webchanges.md` as the design source of truth.
