@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xbrli:xbrl
+  xmlns:xbrli="http://www.xbrl.org/2003/instance"
+  xmlns:jpdei_cor="http://example.com/jpdei_cor"
+  xmlns:jppfs_cor="http://example.com/jppfs_cor">
+  <jpdei_cor:CashAndDeposits contextRef="CurrentYearInstant">1200</jpdei_cor:CashAndDeposits>
+  <jppfs_cor:NetCashProvidedByUsedInOperatingActivities contextRef="CurrentYearDuration">-1200</jppfs_cor:NetCashProvidedByUsedInOperatingActivities>
+  <jppfs_cor:NetCashProvidedByUsedInInvestingActivities contextRef="CurrentYearDuration">-300</jppfs_cor:NetCashProvidedByUsedInInvestingActivities>
+  <jppfs_cor:NetCashProvidedByUsedInFinancingActivities contextRef="CurrentYearDuration">500</jppfs_cor:NetCashProvidedByUsedInFinancingActivities>
+</xbrli:xbrl>

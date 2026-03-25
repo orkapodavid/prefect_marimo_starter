@@ -234,10 +234,21 @@ Define the orchestration steps inside the notebook and push reusable logic into 
 3. `fetch_tdnet_candidates`
    - Reuse `src/services/tdnet/tdnet_announcement_scraper.py`.
    - Normalize titles, company codes, dates, and document URLs into workflow models.
+   - For Japanese equities, normalize exchange tickers like `6454.T` to TDnet's 5-digit
+     stock-code format like `64540` before matching. Do not compare a 4-digit ticker directly to
+     TDnet announcement stock codes.
 
 4. `fetch_edinet_candidates`
    - Query EDINET by date using the resolved API key.
-   - Match documents to tracked companies or TDnet-derived candidates.
+   - Match documents to TDnet-derived candidates for enabled targets with
+     `include_edinet=true`; do not intake issuer-wide EDINET filings just because the issuer is
+     tracked.
+   - Use EDINET `formCode` as the primary deterministic scope signal for cash-relevant report
+     families. Live validation showed that relying on English `docDescription` strings is not
+     sufficient because EDINET commonly returns Japanese descriptions such as
+     `訂正有価証券報告書` and `訂正半期報告書`.
+   - Keep Japanese and English description markers only as a fallback when `formCode` is absent or
+     ambiguous.
 
 5. `download_source_documents`
    - Save XBRL, PDF, and HTML files under the feature workspace.
@@ -319,7 +330,7 @@ Suggested indexes:
 - Use the existing TDnet scraper for announcement discovery.
 - Add a thin adapter layer in `financial_monitor_tdnet_adapter.py` to:
   - filter relevant disclosure categories
-  - normalize company identifiers
+  - normalize company identifiers, including TDnet's 5-digit Japanese stock-code format
   - map result rows into workflow-specific models
 
 ### EDINET
@@ -327,6 +338,11 @@ Suggested indexes:
 - Add a small client module in `financial_monitor_edinet_client.py`.
 - Resolve the API key using the explicit order defined above.
 - Normalize EDINET responses into typed service models instead of passing raw API payloads through the notebook.
+- Treat EDINET report-family `formCode` values as the primary deterministic filter for
+  cash-relevant filings. The first implementation must at least cover the securities-report and
+  quarterly/half-year report families, including corrected filings.
+- Do not assume `docDescription` will be English. Live EDINET responses commonly use Japanese
+  descriptions for the same report families.
 
 ### XBRL and documents
 
@@ -425,6 +441,17 @@ Keep the repo's current testing discipline:
 - add notebook contract tests that verify decorator order, flow naming, and edit/script cells
 - add deployment-doc tests that verify the new `prefect.yaml` entry and setup docs
 - rely on manual notebook checks for interactive edit mode
+- add one decorated-flow smoke check that executes the real Prefect flow path, not only task
+  `.fn()` helpers
+
+Local decorated-flow validation notes:
+
+- ensure `EDINET_API_KEY` is actually present in the process environment or the Prefect Secret
+  block exists; a repo `.env` convenience loader outside flow context is not enough for an
+  in-flow secret lookup
+- if local `PREFECT_API_URL` points at a non-running server, isolate the smoke run with a fresh
+  temporary Prefect metadata database instead of treating Prefect startup failure as a workflow
+  defect
 
 Minimum unit-test areas:
 

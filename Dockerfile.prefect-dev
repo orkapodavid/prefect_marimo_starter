@@ -1,0 +1,14 @@
+FROM prefecthq/prefect:3-latest
+
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+WORKDIR /app
+
+COPY pyproject.toml README.md prefect.yaml ./
+COPY src ./src
+COPY notebooks ./notebooks
+COPY config ./config
+COPY migrations ./migrations
+
+RUN python -m pip install --no-cache-dir -e .

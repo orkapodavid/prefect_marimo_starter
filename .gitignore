@@ -52,3 +52,7 @@ htmlcov/
 
 # Repo-local scratch directory
 tmp/
+
+# Local runtime artifacts
+data/prefect_home/
+reports/financial_monitor/

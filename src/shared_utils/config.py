@@ -11,7 +11,11 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     """Application settings loaded from environment."""
 
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        extra="ignore",
+    )
 
     # App Info
     app_name: str = Field(default="Prefect Marimo Workflows")
@@ -82,6 +86,24 @@ class Settings(BaseSettings):
     ir_monitor_timezone: str = Field(default="Asia/Tokyo")
     ir_monitor_report_timezone: str = Field(default="Asia/Tokyo")
     ir_monitor_webhook_url: str = Field(default="")
+
+    # Financial Monitor
+    financial_monitor_database_url: str = Field(
+        default="postgresql://localhost:5432/workflow_app"
+    )
+    financial_monitor_config_path: Path = Field(
+        default=Path("./config/financial_monitor/financial_monitor_targets.yaml")
+    )
+    financial_monitor_workspace_dir: Path = Field(default=Path("./data/financial_monitor"))
+    financial_monitor_reports_dir: Path = Field(default=Path("./reports/financial_monitor"))
+    financial_monitor_schedule_cron: str = Field(default="0 21 * * 1-5")
+    financial_monitor_timezone: str = Field(default="Asia/Tokyo")
+    financial_monitor_report_timezone: str = Field(default="Asia/Tokyo")
+    financial_monitor_default_runway_threshold_months: int = Field(default=12)
+    financial_monitor_enable_transcripts: bool = Field(default=False)
+    financial_monitor_edinet_api_key_block_name: str = Field(
+        default="financial-monitor-edinet-api-key"
+    )
 
     # X Monitor
     x_monitor_database_url: str = Field(default="postgresql://localhost:5432/x_monitor")

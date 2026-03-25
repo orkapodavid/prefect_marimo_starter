@@ -39,6 +39,8 @@ deployments:
 ## Step 4: Deploy
 Run `prefect deploy --name daily-report` to register the new flow.
 
+For repo-local server and worker setup, see `docs/prefect/prefect_local_dev_stack.md`.
+
 ## IR Monitor Example
 
 The IR monitor flow lives at `notebooks/ir/ir_webchanges_monitor.py`.
@@ -59,3 +61,18 @@ Use this pattern when the workflow needs:
 2. Shared service code under `src/services/x_monitor/`.
 3. PostgreSQL-backed state plus Prefect deployments in `prefect.yaml`.
 4. Config files under `config/x_monitor/`.
+
+## Financial Monitor Example
+
+The financial monitor flow lives at
+`notebooks/financial_monitor/financial_monitor_daily_pipeline.py`.
+
+Use this pattern when the workflow needs:
+1. A unified Marimo + Prefect notebook entrypoint.
+2. Shared service code under `src/services/financial_monitor/`.
+3. TDnet discovery plus EDINET retrieval in one orchestration flow.
+4. PostgreSQL-backed normalized persistence plus Prefect artifacts.
+5. Config files under `config/financial_monitor/`.
+6. A script-mode smoke path that reuses the same orchestration helper as the
+   deployed flow, with divergence limited to input selection or explicit
+   fallback execution mode.

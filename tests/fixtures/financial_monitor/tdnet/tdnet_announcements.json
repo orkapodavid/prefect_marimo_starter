@@ -1,0 +1,48 @@
+{
+  "start_date": "2026-03-25",
+  "end_date": "2026-03-25",
+  "language": "japanese",
+  "total_count": 3,
+  "page_count": 1,
+  "announcements": [
+    {
+      "publish_datetime": "2026-03-25T15:00:00",
+      "publish_date": "2026-03-25",
+      "stock_code": "8058",
+      "company_name": "三菱商事株式会社",
+      "title": "2026年3月期 第3四半期決算短信〔IFRS〕（連結）",
+      "pdf_url": "https://tdnet.example/8058-results.pdf",
+      "has_xbrl": true,
+      "notes": "",
+      "language": "japanese",
+      "listed_exchange": "東",
+      "xbrl_url": "https://tdnet.example/8058-results-xbrl.zip"
+    },
+    {
+      "publish_datetime": "2026-03-25T16:00:00",
+      "publish_date": "2026-03-25",
+      "stock_code": "8058",
+      "company_name": "三菱商事株式会社",
+      "title": "自己株式の取得状況に関するお知らせ",
+      "pdf_url": "https://tdnet.example/8058-buyback.pdf",
+      "has_xbrl": false,
+      "notes": "",
+      "language": "japanese",
+      "listed_exchange": "東",
+      "xbrl_url": null
+    },
+    {
+      "publish_datetime": "2026-03-25T17:00:00",
+      "publish_date": "2026-03-25",
+      "stock_code": "8058",
+      "company_name": "三菱商事株式会社",
+      "title": "資金の借入に関するお知らせ",
+      "pdf_url": "https://tdnet.example/8058-financing.pdf",
+      "has_xbrl": false,
+      "notes": "",
+      "language": "japanese",
+      "listed_exchange": "東",
+      "xbrl_url": null
+    }
+  ]
+}

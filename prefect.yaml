@@ -213,6 +213,19 @@ deployments:
     schedules:
       - *hourly_weekday_tokyo
 
+  - name: financial-monitor-daily-prod
+    entrypoint: notebooks/financial_monitor/financial_monitor_daily_pipeline.py:run_financial_monitor_daily_pipeline
+    description: "Daily financial disclosure monitor for configured Japanese companies"
+    tags: [prod, financial_monitor, tdnet, edinet]
+    parameters:
+      config_path: "./config/financial_monitor/financial_monitor_targets.yaml"
+      environment: "prod"
+      dry_run: false
+    work_pool: *windows_pool
+    schedules:
+      - cron: "0 21 * * 1-5"
+        timezone: "Asia/Tokyo"
+
   - name: x-monitor-poll-accounts-prod
     entrypoint: notebooks/x_monitor/x_monitor_poll_accounts.py:run_x_monitor_poll_accounts
     description: "Poll X/Twitter accounts for new posts and send immediate alerts"

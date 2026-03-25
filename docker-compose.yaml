@@ -1,0 +1,63 @@
+services:
+  prefect-server:
+    build:
+      context: .
+      dockerfile: Dockerfile.prefect-dev
+    image: prefect-marimo-workflows-prefect-dev
+    container_name: prefect-server-pm-starter
+    restart: unless-stopped
+    command:
+      - /bin/sh
+      - -lc
+      - |
+        python -m shared_utils.prefect_postgres
+        exec prefect server start --host 0.0.0.0 --port 4200
+    ports:
+      - "4201:4200"
+    env_file:
+      - .env
+    environment:
+      PREFECT_SERVER_UI_API_URL: http://127.0.0.1:4201/api
+      PREFECT_API_DATABASE_CONNECTION_URL: ${PREFECT_API_DATABASE_CONNECTION_URL:?set in .env}
+      PREFECT_SERVER_DATABASE_SQLALCHEMY_CONNECT_ARGS_SEARCH_PATH: ${PREFECT_SERVER_DATABASE_SQLALCHEMY_CONNECT_ARGS_SEARCH_PATH:-prefect_marimo_starter,public}
+      PREFECT_SERVER_DATABASE_SQLALCHEMY_CONNECT_ARGS_APPLICATION_NAME: ${PREFECT_SERVER_DATABASE_SQLALCHEMY_CONNECT_ARGS_APPLICATION_NAME:-prefect-marimo-starter}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request as u; u.urlopen('http://localhost:4200/api/health', timeout=2)",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  prefect-worker:
+    image: prefect-marimo-workflows-prefect-dev
+    container_name: prefect-worker-pm-starter
+    restart: unless-stopped
+    depends_on:
+      prefect-server:
+        condition: service_healthy
+    working_dir: ${PROJECT_ROOT:?set PROJECT_ROOT in .env to the repo absolute path}
+    command:
+      - /bin/sh
+      - -lc
+      - |
+        prefect work-pool inspect windows-process-pool >/dev/null 2>&1 || prefect work-pool create windows-process-pool --type process
+        exec prefect worker start --pool windows-process-pool --type process
+    env_file:
+      - .env
+    environment:
+      PREFECT_API_URL: http://prefect-server:4200/api
+      PYTHONPATH: ${PROJECT_ROOT:?set PROJECT_ROOT in .env to the repo absolute path}/src
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - type: bind
+        source: ${PROJECT_ROOT:?set PROJECT_ROOT in .env to the repo absolute path}
+        target: ${PROJECT_ROOT:?set PROJECT_ROOT in .env to the repo absolute path}

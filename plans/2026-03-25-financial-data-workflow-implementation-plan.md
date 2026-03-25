@@ -10,6 +10,46 @@
 
 ---
 
+## Correctness notes from live validation
+
+These notes came from running the real decorated Prefect flow against live TDnet and EDINET data.
+They should be treated as implementation requirements, not optional cleanup:
+
+1. **TDnet stock-code matching must normalize to TDnet's 5-digit format**
+   - Live TDnet announcements use 5-digit stock codes such as `64540`.
+   - Exchange tickers in config will commonly be 4-digit values such as `6454.T`.
+   - The adapter must normalize `6454.T -> 64540` before comparing against TDnet
+     `announcement.stock_code`.
+
+2. **EDINET cash-relevant scoping must use `formCode` first**
+   - Live EDINET `docDescription` values are often Japanese, for example
+     `訂正有価証券報告書` and `訂正半期報告書`.
+   - An English-only description filter will silently miss valid filings.
+   - Use report-family `formCode` values as the primary deterministic filter, and keep
+     Japanese/English description markers only as fallback logic.
+
+3. **EDINET intake must stay disclosure-scoped**
+   - Only pull EDINET documents for TDnet-matched, results-like candidates whose target is both
+     enabled and `include_edinet=true`.
+   - Do not broaden EDINET intake to all filings for a tracked issuer on that day.
+
+4. **Real flow verification must exercise the decorated Prefect path**
+   - A task `.fn()` fallback is not sufficient verification.
+   - Local decorated-flow checks may require an isolated temporary Prefect metadata database when
+     `PREFECT_API_URL` points at a non-running server.
+   - In-flow EDINET auth needs an actual `EDINET_API_KEY` environment variable or Prefect Secret
+     block; a repo `.env` loader outside run context is not enough by itself.
+
+Reference live-validation case:
+
+- On March 25, 2026, a temporary config for `6454.T` / EDINET `E02381` produced a completed real
+  flow run with:
+  - `tdnet_candidate_count=4`
+  - `edinet_candidate_count=2`
+  - `document_manifest_count=14`
+  - `extracted_metric_count=2`
+  - `filings_upserted=2`
+
 ## Repo-specific customization summary
 
 This implementation must follow the repo contract, not the generic source document:
@@ -299,6 +339,8 @@ Expected assertions:
 
 - TDnet adapter drops unrelated announcement titles.
 - TDnet adapter returns typed candidate records with company code, title, disclosure date, and source URL.
+- TDnet adapter normalizes 4-digit Japanese tickers like `6454.T` to TDnet's 5-digit stock-code
+  format like `64540` before matching.
 - EDINET key resolution prefers the configured Prefect Secret block.
 - EDINET key resolution falls back to `EDINET_API_KEY`.
 - Document-store helper writes deterministic relative paths under `data/financial_monitor/<environment>/raw/`.
@@ -313,6 +355,8 @@ Expected: FAIL because the adapter and client modules do not exist yet.
 Implement:
 
 - TDnet adapter that wraps `services.tdnet.tdnet_announcement_scraper`
+- ticker normalization that converts 4-digit Japanese exchange tickers to TDnet's 5-digit stock
+  code format before announcement matching
 - EDINET HTTP client with explicit timeout and typed normalization
 - API key resolver with this order:
   1. Prefect Secret block
@@ -322,6 +366,10 @@ Implement:
   - `raw/tdnet/`
   - `raw/edinet/`
   - `manifests/`
+
+When you implement EDINET candidate scoping in the notebook, do not rely on English description
+strings alone. The deterministic filter must use `formCode` as the primary signal for
+cash-relevant report families and may use Japanese/English description markers only as fallback.
 
 Do not pass live `requests.Session` objects across task boundaries. Keep sessions inside service calls.
 
@@ -551,6 +599,11 @@ Manual verification:
 
 1. `uv run python notebooks/financial_monitor/financial_monitor_daily_pipeline.py`
 2. `uv run marimo edit notebooks/financial_monitor/financial_monitor_daily_pipeline.py`
+3. Execute one real decorated-flow smoke run against the notebook flow entrypoint, not only the
+   script fallback path. If local `PREFECT_API_URL` points to a dead server, isolate this run with
+   a fresh temporary Prefect metadata database. If no production config is tracked, use a
+   temporary config under `tmp/financial_monitor/` and a temporary SQLite snapshot DB so the real
+   orchestration path still exercises TDnet, EDINET, downloads, extraction, and persistence.
 
 **Step 6: Commit**
 

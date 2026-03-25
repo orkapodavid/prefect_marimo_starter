@@ -85,16 +85,24 @@ copy .env.example .env
 
 ### 3. Start Infrastructure
 
-**Terminal 1: Prefect Server**
+**Start Local Prefect Dev Stack**
 ```bash
-prefect server start
+docker compose up -d
 ```
 
-**Terminal 2: Prefect Worker**
+**Inspect Server + Worker**
 ```bash
-# Starts a process worker that executes flows locally
-prefect worker start --pool windows-process-pool --type process
+docker compose ps
+docker compose logs -f prefect-server prefect-worker
 ```
+
+The repo-local Prefect stack uses `PREFECT_API_URL=http://127.0.0.1:4201/api`,
+stores Prefect server metadata in PostgreSQL, and isolates this repo from other
+Prefect servers by using a repo-specific PostgreSQL schema. Set `PROJECT_ROOT`
+in `.env` to this repo's absolute path so the containerized worker can execute
+deployments that use the repo's `set_working_directory` pull step. The Compose
+worker automatically starts against `windows-process-pool`. The full reference
+is documented in `docs/prefect/prefect_local_dev_stack.md`.
 
 ### 4. Development Loop
 
@@ -144,6 +152,37 @@ live under `data/x_monitor/`, and the operational setup guide is documented in
 `docs/x_monitor/x_monitor_setup.md`. The macOS deployment model uses the
 `local-process-pool` Prefect work pool plus `launchd` wrappers for the Prefect
 server and worker processes.
+
+### Financial Monitor Workflow
+
+The repo now includes a **financial monitor** workflow at
+`notebooks/financial_monitor/financial_monitor_daily_pipeline.py`. It combines
+TDnet announcement discovery, EDINET document retrieval, XBRL-first cash-metric
+extraction, deterministic runway calculation, deterministic liquidity/fundraising
+flagging, PostgreSQL persistence, and Prefect artifact output.
+
+Configuration lives under `config/financial_monitor/`, durable run files live
+under `data/financial_monitor/`, human-facing summaries are written under
+`reports/financial_monitor/`, and temporary debug artifacts belong under
+`tmp/financial_monitor/`. The setup guide is documented in
+`docs/financial_monitor/financial_monitor_setup.md`. For local execution, store
+`EDINET_API_KEY` in the repo-root `.env` for standalone smoke checks, or use
+the Prefect Secret block `financial-monitor-edinet-api-key` for Prefect-run
+execution.
+
+The notebook keeps one execution path for both deployment and local smoke use:
+if the tracked financial-monitor config exists, script mode runs the decorated
+Prefect flow against it; otherwise it falls back to the tracked example config
+with `environment="dev"` and `dry_run=True`. Standalone script runs still write
+repo-local JSON/Markdown summaries, but Prefect UI artifacts are only published
+when the code is running inside a real Prefect flow/task context.
+
+For local execution:
+
+```bash
+uv run python notebooks/financial_monitor/financial_monitor_daily_pipeline.py
+uv run marimo edit notebooks/financial_monitor/financial_monitor_daily_pipeline.py
+```
 
 ## Running Modes
 

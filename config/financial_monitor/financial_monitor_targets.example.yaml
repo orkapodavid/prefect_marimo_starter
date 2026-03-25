@@ -1,0 +1,25 @@
+companies:
+  mitsubishi_corp:
+    name: Mitsubishi Corporation
+    ticker: 8058.T
+    exchange: TSE
+    edinet_code: E02529
+
+runtime:
+  workspace_dir: ./data/financial_monitor/prod
+  schedule_cron: "0 21 * * 1-5"
+
+defaults:
+  timezone: Asia/Tokyo
+  runway_threshold_months: 12
+
+targets:
+  - id: mitsubishi_corp_results
+    company_id: mitsubishi_corp
+    tdnet_language: japanese
+    disclosure_keywords:
+      - 決算短信
+      - 業績予想
+      - 配当予想
+    include_edinet: true
+    enabled: true
