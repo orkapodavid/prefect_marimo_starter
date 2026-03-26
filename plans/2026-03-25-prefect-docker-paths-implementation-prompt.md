@@ -1,5 +1,14 @@
 # Follow-Up Prompt: Fix Dockerized Prefect Path Assumptions Repo-Wide
 
+> **Status:** IMPLEMENTED
+> **Completed:** 2026-03-26
+> **Follow-up review status:** All known findings resolved, including the
+> Marimo edit-mode config-path default inconsistency.
+>
+> This file is preserved as the historical implementation prompt. The actual
+> shipped behavior, verification state, and review guidance now live in
+> `plans/2026-03-25-prefect-docker-paths-review.md`.
+
 You are working in the `prefect_marimo_starter` repository.
 
 Start from commit `045668a`:
@@ -183,3 +192,24 @@ The current Dockerized financial-monitor deployment was successfully registered
 and run with explicit example-config overrides, but the repo still needs a
 general fix for default path assumptions. Solve that general problem, not just
 the one successful demo path.
+
+## Historical Outcome Summary
+
+The implementation completed with these repo-level outcomes:
+
+- Docker-worker deployments now use a fixed internal repo path contract instead
+  of a host-specific absolute `set_working_directory`.
+- The Docker pull step is attached only to Docker-worker deployments in
+  `prefect.yaml`, not to the macOS X-monitor deployments.
+- Shared repo-path resolution now happens from the repo root in shared helpers
+  and config loaders.
+- Scheduled IR and financial-monitor deployments now rely on settings-backed
+  real config paths instead of tracked example configs in deployment
+  parameters.
+- Marimo edit-mode config-path widgets for IR and financial monitor now honor
+  `.env` overrides such as `IR_MONITOR_CONFIG_PATH` and
+  `FINANCIAL_MONITOR_CONFIG_PATH`.
+
+For review or follow-up work, use
+`plans/2026-03-25-prefect-docker-paths-review.md` as the current source of
+truth.
