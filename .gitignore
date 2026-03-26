@@ -54,5 +54,8 @@ htmlcov/
 tmp/
 
 # Local runtime artifacts
-data/prefect_home/
+data/**
+!data/
+!data/**/
+!data/**/.gitkeep
 reports/financial_monitor/

@@ -83,3 +83,16 @@ targets:
     assert target.keywords_any == []
     assert target.keywords_all == []
     assert target.regex_any == []
+
+
+def test_load_x_monitor_config_resolves_repo_relative_path_outside_repo_cwd(
+    tmp_path: Path,
+    monkeypatch,
+):
+    monkeypatch.chdir(tmp_path)
+
+    config = load_x_monitor_config(Path("./config/x_monitor/x_monitor_targets.yaml"))
+
+    assert config.runtime.timezone == "Asia/Singapore"
+    assert config.targets[0].username == "openai"
+    assert config.targets[1].username == "nvidia"

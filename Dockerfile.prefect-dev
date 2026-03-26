@@ -3,7 +3,7 @@ FROM prefecthq/prefect:3-latest
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
-WORKDIR /app
+WORKDIR /opt/prefect/prefect_marimo_starter
 
 COPY pyproject.toml README.md prefect.yaml ./
 COPY src ./src

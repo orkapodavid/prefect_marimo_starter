@@ -67,9 +67,23 @@ with app.setup:
         extract_cash_metrics_from_xbrl,
     )
     from shared_utils.config import get_settings
+    from shared_utils.paths import resolve_repo_relative_path
     from shared_utils.prefect_notifications import notify_on_failure
 
     SETTINGS = get_settings()
+    REPO_FINANCIAL_MONITOR_CONFIG_PATH = "./config/financial_monitor/financial_monitor_targets.yaml"
+    REPO_FINANCIAL_MONITOR_EXAMPLE_CONFIG_PATH = (
+        "./config/financial_monitor/financial_monitor_targets.example.yaml"
+    )
+
+    def _default_edit_mode_config_path() -> str:
+        settings_config_path = SETTINGS.financial_monitor_config_path
+        repo_config_path = resolve_repo_relative_path(REPO_FINANCIAL_MONITOR_CONFIG_PATH)
+        if settings_config_path != repo_config_path:
+            return str(settings_config_path)
+        if settings_config_path.exists():
+            return REPO_FINANCIAL_MONITOR_CONFIG_PATH
+        return REPO_FINANCIAL_MONITOR_EXAMPLE_CONFIG_PATH
 
 
 
@@ -571,7 +585,7 @@ def run_financial_monitor_pipeline_steps(
 @app.function
 @flow(name="financial-monitor-daily-pipeline", log_prints=True, on_failure=[notify_on_failure])
 def run_financial_monitor_daily_pipeline(
-    config_path: str = "./config/financial_monitor/financial_monitor_targets.yaml",
+    config_path: str = str(SETTINGS.financial_monitor_config_path),
     filing_date: str | None = None,
     environment: str = "prod",
     dry_run: bool = False,
@@ -659,15 +673,8 @@ def _(mo):
     ui = None
 
     if mo.app_meta().mode == "edit":
-        default_config_path = (
-            SETTINGS.financial_monitor_config_path
-            if SETTINGS.financial_monitor_config_path.exists()
-            else SETTINGS.financial_monitor_config_path.with_name(
-                "financial_monitor_targets.example.yaml"
-            )
-        )
         config_path_input = mo.ui.text(
-            value=str(default_config_path),
+            value=_default_edit_mode_config_path(),
             label="Config Path",
             full_width=True,
         )

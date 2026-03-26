@@ -1,6 +1,7 @@
 from pathlib import Path
 
 from services.financial_monitor.financial_monitor_config import load_financial_monitor_config
+from shared_utils.paths import get_repo_root
 
 
 def test_load_financial_monitor_config_merges_runtime_and_company_metadata(
@@ -37,3 +38,17 @@ targets:
     assert config.targets[0].company_name == "Mitsubishi Corporation"
     assert config.targets[0].ticker == "8058.T"
     assert config.targets[0].edinet_code == "E02529"
+
+
+def test_load_financial_monitor_config_resolves_repo_relative_example_path_outside_repo_cwd(
+    tmp_path: Path,
+    monkeypatch,
+):
+    monkeypatch.chdir(tmp_path)
+
+    config = load_financial_monitor_config(
+        Path("./config/financial_monitor/financial_monitor_targets.example.yaml")
+    )
+
+    assert config.runtime.workspace_dir == get_repo_root() / "data/financial_monitor/prod"
+    assert config.targets[0].company_name == "Mitsubishi Corporation"

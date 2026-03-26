@@ -9,6 +9,11 @@ work:
 - `prefect-worker` starts a local process worker and ensures
   `windows-process-pool` exists
 
+Repo-relative workflow paths are resolved from the actual repo root at runtime.
+The Docker worker bind-mounts the host checkout into a fixed internal repo path,
+and `prefect.yaml` now uses `set_working_directory` only for that fixed
+container path, not for a host-specific absolute path.
+
 The stack is defined in `docker-compose.yaml` and uses repo-local state under
 your local PostgreSQL instance, not a repo-local SQLite database.
 
@@ -25,6 +30,7 @@ PREFECT_SERVER_DATABASE_SQLALCHEMY_CONNECT_ARGS_APPLICATION_NAME=prefect-marimo-
 ```
 
 `PROJECT_ROOT` must be the absolute path to this repo on the host machine.
+Docker Compose uses it as the bind-mount source path only.
 
 `PREFECT_API_DATABASE_CONNECTION_URL` is the actual Prefect metadata database
 connection used by the server container. It must point at a PostgreSQL database
@@ -108,19 +114,27 @@ about for backups and restores, but it creates more databases to manage.
   different case: those replicas should share one schema and follow Prefect's
   multi-server migration guidance.
 
-## Why `PROJECT_ROOT` Matters
+## Path Model
 
-This repo's `prefect.yaml` includes a deployment pull step using
-`prefect.deployments.steps.set_working_directory`. When the worker loads a
-deployment, Prefect calls `chdir` into that configured path before importing the
-flow entrypoint.
+The runtime path contract is now repo-native:
 
-If the worker container does not see the repo at the same absolute path, flow
-runs can be submitted successfully and still crash before notebook code starts
-with a `set_working_directory` error.
+- `prefect.yaml` entrypoints stay repo-relative, for example
+  `notebooks/financial_monitor/financial_monitor_daily_pipeline.py:run_financial_monitor_daily_pipeline`
+- Docker-worker deployments use `set_working_directory` with the fixed internal
+  worker path `/opt/prefect/prefect_marimo_starter`
+- host `local-process-pool` deployments do not use that Docker-only pull step
+- deployments that should honor `.env` config-path settings do not pin config_path
+  in `prefect.yaml`
+- explicit manual overrides can still use repo-relative paths, for example
+  `./config/financial_monitor/financial_monitor_targets.example.yaml`
+- shared settings and config loaders resolve relative paths from the repo root,
+  not from the current shell working directory
+- the Docker worker mounts the repo into `/opt/prefect/prefect_marimo_starter`
+  and starts there, so host and container paths no longer need to match
 
-The Compose worker fixes that by bind-mounting the repo at the exact host path
-declared in `PROJECT_ROOT`.
+That means `PROJECT_ROOT` is still required for the bind mount source on the
+host, but flow code no longer depends on the same absolute path being valid
+inside Docker.
 
 ## PostgreSQL Bootstrap
 
@@ -184,6 +198,11 @@ uv run prefect deployment run \
 
 That path has been validated locally against this Compose stack.
 
+The deployed defaults come from settings in `.env`, not from tracked example
+configs. Scheduled or non-dry-run runs should use the real config path. If you
+need a manual smoke run with example targets, pass an explicit `config_path`
+override at trigger time.
+
 ## Container Networking
 
 Flows running inside `prefect-worker` do not reach host services through
@@ -215,8 +234,8 @@ psql postgres -c '\l'
 If a flow run is submitted but crashes before task logs appear:
 
 - check `docker compose logs prefect-worker`
-- look for `set_working_directory`
-- confirm `PROJECT_ROOT` matches the repo's absolute host path exactly
+- confirm the repo bind mount exists in the worker container
+- confirm the relevant config path exists in the mounted repo or override it explicitly
 
 If the worker is running but no pool exists:
 

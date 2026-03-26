@@ -3,6 +3,7 @@ import subprocess
 
 from src.services.ir_monitor.ir_monitor_jobs_builder import build_workspace_files
 from src.services.ir_monitor.ir_monitor_models import MonitorConfig, MonitorDefaults, MonitorTarget
+from src.shared_utils.paths import get_repo_root
 
 
 def test_build_workspace_files_writes_jobs_config_and_state_paths(tmp_path: Path):
@@ -122,3 +123,32 @@ def test_build_workspace_files_generates_webchanges_valid_job_and_config_yaml(tm
     )
 
     assert result.returncode == 0, result.stderr
+
+
+def test_build_workspace_files_resolves_normalizer_script_from_repo_root(
+    tmp_path: Path,
+    monkeypatch,
+):
+    config = MonitorConfig(
+        defaults=MonitorDefaults(timezone="Asia/Tokyo", report_timezone="Asia/Tokyo"),
+        targets=[
+            MonitorTarget(
+                id="mitsubishi_corp_ir_ja",
+                company_id="mitsubishi_corp",
+                company_name="Mitsubishi Corporation",
+                page_label="Japanese IR page",
+                page_url="https://example.co.jp/jp/ir/",
+                user_visible_url="https://example.co.jp/jp/ir/",
+                target_kind="html_list",
+                selector_type="custom_script",
+                normalizer="generic_jp_ir_news",
+                enabled=True,
+            )
+        ],
+    )
+    monkeypatch.chdir(tmp_path)
+
+    workspace = build_workspace_files(config=config, workspace_dir=tmp_path / "workspace")
+    jobs_text = workspace.jobs_path.read_text(encoding="utf-8")
+
+    assert str(get_repo_root() / "scripts/ir_monitor/ir_monitor_normalize_content.py") in jobs_text

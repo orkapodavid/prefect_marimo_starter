@@ -8,6 +8,7 @@ import sys
 import yaml
 
 from services.ir_monitor.ir_monitor_models import MonitorConfig, MonitorTarget, WorkspacePaths
+from shared_utils.paths import resolve_repo_relative_path
 
 
 def _effective_job_url(target: MonitorTarget, duplicate_count: int) -> str:
@@ -19,7 +20,7 @@ def _effective_job_url(target: MonitorTarget, duplicate_count: int) -> str:
 
 
 def _normalizer_command(target: MonitorTarget) -> str:
-    script_path = Path("scripts/ir_monitor/ir_monitor_normalize_content.py").resolve()
+    script_path = resolve_repo_relative_path("scripts/ir_monitor/ir_monitor_normalize_content.py")
     return subprocess.list2cmdline(
         [
             sys.executable,

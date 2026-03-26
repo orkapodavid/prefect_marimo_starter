@@ -49,12 +49,10 @@ definitions:
       cron: "*/30 * * * *"
       timezone: "Asia/Singapore"
 
-# Deployments point directly to notebook flows
-
-# Generic pull step for all deployments (avoids "remote storage" prompts)
-pull:
-  - prefect.deployments.steps.set_working_directory:
-      directory: /Users/orbot/Developer/work/prefect_marimo_starter
+  deployment_steps:
+    docker_repo_root: &docker_repo_root
+      - prefect.deployments.steps.set_working_directory:
+          directory: /opt/prefect/prefect_marimo_starter
 
 deployments:
   - name: daily-data-sync-dev
@@ -65,6 +63,7 @@ deployments:
       source: "data/dev/input.parquet"
       destination: "data/dev/output.parquet"
       environment: "dev"
+    pull: *docker_repo_root
     work_pool: *windows_pool
     schedules: []
 
@@ -76,6 +75,7 @@ deployments:
       source: "//fileserver/data/input/daily.parquet"
       destination: "//fileserver/data/output/synced.parquet"
       environment: "prod"
+    pull: *docker_repo_root
     work_pool: *windows_pool
     schedules:
       - *daily_6am
@@ -84,6 +84,7 @@ deployments:
     entrypoint: notebooks/reports/daily_summary.py:run_report
     description: "Daily summary report generation"
     tags: [prod, reports]
+    pull: *docker_repo_root
     work_pool: *windows_pool
     schedules:
       - cron: "0 7 * * *"
@@ -100,6 +101,7 @@ deployments:
       compression_level: 6
       verify_restore: true
       dry_run: false
+    pull: *docker_repo_root
     work_pool: *windows_pool
     schedules:
       - cron: "0 2 * * *"
@@ -116,6 +118,7 @@ deployments:
       sample_size: 0
       download_pdfs: false
       use_database: true
+    pull: *docker_repo_root
     work_pool: *windows_pool
     schedules:
       - *asx_market_close
@@ -131,6 +134,7 @@ deployments:
       download_pdfs: true
       output_format: "both"
       use_database: true
+    pull: *docker_repo_root
     work_pool: *windows_pool
     schedules:
       - *asx_morning_midday_close
@@ -143,6 +147,7 @@ deployments:
       output_dir: "./outputs/appendix5b"
       download_pdfs: true
       use_database: true
+    pull: *docker_repo_root
     work_pool: *windows_pool
     schedules:
       - *asx_appendix5b_times
@@ -157,6 +162,7 @@ deployments:
       period: "today"
       output_dir: "./data/output/tdnet_announcements"
       output_format: "csv"
+    pull: *docker_repo_root
     work_pool: *windows_pool
     schedules:
       - cron: "0 18 * * 1-5"
@@ -171,6 +177,7 @@ deployments:
       period: "month"
       output_dir: "./data/output/tdnet_announcements"
       output_format: "csv"
+    pull: *docker_repo_root
     work_pool: *windows_pool
     schedules: []
 
@@ -183,6 +190,7 @@ deployments:
       period: "today"
       output_dir: "./data/output/tdnet_announcements"
       output_format: "csv"
+    pull: *docker_repo_root
     work_pool: *windows_pool
     schedules:
       - cron: "0 18 * * 1-5"
@@ -197,6 +205,7 @@ deployments:
       period: "month"
       output_dir: "./data/output/tdnet_announcements"
       output_format: "csv"
+    pull: *docker_repo_root
     work_pool: *windows_pool
     schedules: []
 
@@ -205,10 +214,10 @@ deployments:
     description: "Monitor configured Japanese IR pages with webchanges"
     tags: [prod, ir, webchanges]
     parameters:
-      config_path: "./config/ir_monitor/ir_monitor_targets.yaml"
       environment: "prod"
       notify_on_no_change: false
       dry_run: false
+    pull: *docker_repo_root
     work_pool: *windows_pool
     schedules:
       - *hourly_weekday_tokyo
@@ -218,9 +227,9 @@ deployments:
     description: "Daily financial disclosure monitor for configured Japanese companies"
     tags: [prod, financial_monitor, tdnet, edinet]
     parameters:
-      config_path: "./config/financial_monitor/financial_monitor_targets.yaml"
       environment: "prod"
       dry_run: false
+    pull: *docker_repo_root
     work_pool: *windows_pool
     schedules:
       - cron: "0 21 * * 1-5"
@@ -231,7 +240,6 @@ deployments:
     description: "Poll X/Twitter accounts for new posts and send immediate alerts"
     tags: [prod, x_monitor, polling]
     parameters:
-      config_path: "./config/x_monitor/x_monitor_targets.yaml"
       environment: "prod"
     work_pool: *macos_pool
     schedules:
@@ -242,7 +250,6 @@ deployments:
     description: "Send daily digest emails for X monitor matches"
     tags: [prod, x_monitor, digest]
     parameters:
-      config_path: "./config/x_monitor/x_monitor_targets.yaml"
       environment: "prod"
     work_pool: *macos_pool
     schedules:
@@ -253,7 +260,6 @@ deployments:
     description: "Health check for X monitor infrastructure"
     tags: [prod, x_monitor, health]
     parameters:
-      config_path: "./config/x_monitor/x_monitor_targets.yaml"
       environment: "prod"
     work_pool: *macos_pool
     schedules:

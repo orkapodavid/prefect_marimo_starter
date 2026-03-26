@@ -1,6 +1,7 @@
 from pathlib import Path
 from unittest.mock import Mock
 import importlib
+from types import SimpleNamespace
 
 import pytest
 
@@ -14,6 +15,7 @@ from src.services.ir_monitor.ir_monitor_models import (
     ParsedMonitorReport,
     WorkspacePaths,
 )
+from src.shared_utils.paths import get_repo_root
 
 
 def test_run_ir_webchanges_monitor_raises_when_webchanges_exits_non_zero(
@@ -86,3 +88,56 @@ def test_run_ir_webchanges_monitor_raises_when_webchanges_exits_non_zero(
 
     write_artifacts_mock.assert_called_once()
     notify_mock.assert_not_called()
+
+
+def test_prepare_workspace_resolves_relative_workspace_override_from_repo_root(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
+    notebook = importlib.import_module("notebooks.ir.ir_webchanges_monitor")
+
+    config = MonitorConfig(
+        runtime=MonitorRuntime(),
+        defaults=MonitorDefaults(report_timezone="Asia/Tokyo"),
+        targets=[],
+    )
+    workspace = WorkspacePaths(
+        root_dir=tmp_path,
+        generated_dir=tmp_path / "generated",
+        jobs_path=tmp_path / "generated/jobs.yaml",
+        config_path=tmp_path / "generated/config.yaml",
+        state_dir=tmp_path / "state",
+        artifacts_dir=tmp_path / "artifacts",
+        logs_dir=tmp_path / "logs",
+        changed_jobs_path=tmp_path / "artifacts/changed_jobs.json",
+        baseline_metadata_path=tmp_path / "state/baselines.json",
+    )
+    build_workspace_mock = Mock(return_value=workspace)
+
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(notebook, "build_workspace_files", build_workspace_mock)
+
+    notebook.prepare_workspace.fn(
+        config=config,
+        environment="staging",
+        workspace_dir="./data/ir_monitor/staging",
+    )
+
+    assert build_workspace_mock.call_args.kwargs["workspace_dir"] == (
+        get_repo_root() / "data/ir_monitor/staging"
+    )
+
+
+def test_default_edit_mode_config_path_uses_custom_settings_path(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
+    notebook = importlib.import_module("notebooks.ir.ir_webchanges_monitor")
+    custom_config_path = tmp_path / "ir-monitor-custom.yaml"
+    custom_config_path.write_text("targets: []\n", encoding="utf-8")
+
+    monkeypatch.setattr(
+        notebook,
+        "SETTINGS",
+        SimpleNamespace(ir_monitor_config_path=custom_config_path),
+    )
+
+    assert notebook._default_edit_mode_config_path() == str(custom_config_path)

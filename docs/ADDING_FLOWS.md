@@ -36,6 +36,21 @@ deployments:
     schedule: *daily_7am
 ```
 
+Path rules for deployment parameters:
+
+1. Keep notebook entrypoints repo-relative.
+2. Resolve repo-relative paths from the repo root in code, not from the current
+   working directory.
+3. Scheduled or prod deployments should default to the real config path from
+   settings and fail early when it is missing. Example configs are for manual
+   smoke runs, not production defaults.
+4. If some deployments run inside Docker and others run on the host, scope
+   `set_working_directory` to the Docker-targeted deployments. Do not add a
+   global Docker-only pull step.
+5. If operators need a private or machine-local config, allow an explicit
+   `config_path` override or a settings-based default from `.env`, and fail
+   early with a clear error when the resolved file is missing.
+
 ## Step 4: Deploy
 Run `prefect deploy --name daily-report` to register the new flow.
 

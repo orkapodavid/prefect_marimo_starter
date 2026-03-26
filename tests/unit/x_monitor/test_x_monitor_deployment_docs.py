@@ -1,8 +1,12 @@
 from pathlib import Path
 
+import yaml
+
 
 def test_prefect_yaml_contains_x_monitor_deployments():
     prefect_yaml = Path("prefect.yaml").read_text(encoding="utf-8")
+    prefect_config = yaml.safe_load(prefect_yaml)
+    deployments = {deployment["name"]: deployment for deployment in prefect_config["deployments"]}
 
     assert "x-monitor-poll-accounts-prod" in prefect_yaml
     assert "x-monitor-send-digest-prod" in prefect_yaml
@@ -10,6 +14,17 @@ def test_prefect_yaml_contains_x_monitor_deployments():
     assert "notebooks/x_monitor/x_monitor_poll_accounts.py:run_x_monitor_poll_accounts" in (
         prefect_yaml
     )
+    assert "pull" not in prefect_config
+
+    for deployment_name in (
+        "x-monitor-poll-accounts-prod",
+        "x-monitor-send-digest-prod",
+        "x-monitor-healthcheck-prod",
+    ):
+        deployment = deployments[deployment_name]
+        assert deployment["work_pool"]["name"] == "local-process-pool"
+        assert "pull" not in deployment
+        assert "config_path" not in deployment["parameters"]
 
 
 def test_docs_reference_x_monitor_workflow():

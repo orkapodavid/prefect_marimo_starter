@@ -199,3 +199,20 @@ def test_run_script_mode_entrypoint_uses_prefect_flow_when_tracked_config_exists
     )
     fallback_mock.assert_not_called()
     assert result == {"mode": "flow"}
+
+
+def test_default_edit_mode_config_path_uses_custom_settings_path(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    notebook = importlib.import_module("notebooks.financial_monitor.financial_monitor_daily_pipeline")
+    custom_config_path = tmp_path / "financial-monitor-custom.yaml"
+    custom_config_path.write_text("targets: []\n", encoding="utf-8")
+
+    monkeypatch.setattr(
+        notebook,
+        "SETTINGS",
+        SimpleNamespace(financial_monitor_config_path=custom_config_path),
+    )
+
+    assert notebook._default_edit_mode_config_path() == str(custom_config_path)

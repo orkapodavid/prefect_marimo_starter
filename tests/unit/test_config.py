@@ -1,4 +1,5 @@
 from src.shared_utils.config import Settings, get_settings
+from src.shared_utils.paths import get_repo_root
 
 
 def test_get_settings():
@@ -28,3 +29,23 @@ def test_settings_ignore_unknown_dotenv_entries(tmp_path):
     settings = Settings(_env_file=env_file)
 
     assert settings.environment == "dev"
+
+
+def test_get_settings_resolves_repo_relative_paths_from_repo_root():
+    get_settings.cache_clear()
+
+    settings = get_settings()
+    repo_root = get_repo_root()
+
+    assert settings.data_directory == repo_root / "data"
+    assert settings.log_directory == repo_root / "logs"
+    assert settings.reports_directory == repo_root / "reports"
+    assert settings.ir_monitor_config_path == repo_root / "config/ir_monitor/ir_monitor_targets.yaml"
+    assert (
+        settings.financial_monitor_config_path
+        == repo_root / "config/financial_monitor/financial_monitor_targets.yaml"
+    )
+    assert settings.x_monitor_config_path == repo_root / "config/x_monitor/x_monitor_targets.yaml"
+    assert settings.data_directory.is_absolute()
+    assert settings.financial_monitor_reports_dir.is_absolute()
+    assert settings.x_monitor_twscrape_accounts_db.is_absolute()

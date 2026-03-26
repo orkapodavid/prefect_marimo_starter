@@ -4,15 +4,34 @@ from functools import lru_cache
 import os
 from pathlib import Path
 
-from pydantic import Field
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+from shared_utils.paths import get_repo_root, resolve_repo_relative_path
+
+
+REPO_ROOT = get_repo_root()
+REPO_PATH_FIELDS = (
+    "data_directory",
+    "log_directory",
+    "reports_directory",
+    "pg_backup_output_dir",
+    "ir_monitor_config_path",
+    "ir_monitor_workspace_dir",
+    "financial_monitor_config_path",
+    "financial_monitor_workspace_dir",
+    "financial_monitor_reports_dir",
+    "x_monitor_config_path",
+    "x_monitor_workspace_dir",
+    "x_monitor_twscrape_accounts_db",
+)
 
 
 class Settings(BaseSettings):
     """Application settings loaded from environment."""
 
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=REPO_ROOT / ".env",
         env_file_encoding="utf-8",
         extra="ignore",
     )
@@ -32,9 +51,9 @@ class Settings(BaseSettings):
     work_pool_name: str = Field(default="windows-process-pool")
 
     # Paths
-    data_directory: Path = Field(default=Path("./data"))
-    log_directory: Path = Field(default=Path("./logs"))
-    reports_directory: Path = Field(default=Path("./reports"))
+    data_directory: Path = Field(default=Path("data"))
+    log_directory: Path = Field(default=Path("logs"))
+    reports_directory: Path = Field(default=Path("reports"))
 
     # Processing defaults
     batch_size: int = Field(default=1000)
@@ -71,7 +90,7 @@ class Settings(BaseSettings):
     pg_backup_password: str = Field(default="")
     pg_backup_password_block_name: str | None = Field(default=None)
     pg_backup_database: str = Field(default="postgres")
-    pg_backup_output_dir: Path = Field(default=Path("./data/backups/postgres"))
+    pg_backup_output_dir: Path = Field(default=Path("data/backups/postgres"))
     pg_backup_retention_days: int = Field(default=30)
     pg_backup_schedule_cron: str = Field(default="0 2 * * *")
     pg_backup_timezone: str = Field(default="Asia/Hong_Kong")
@@ -81,7 +100,8 @@ class Settings(BaseSettings):
     pg_backup_min_free_space_gb: int = Field(default=5)
 
     # IR Monitor
-    ir_monitor_workspace_dir: Path = Field(default=Path("./data/ir_monitor"))
+    ir_monitor_config_path: Path = Field(default=Path("config/ir_monitor/ir_monitor_targets.yaml"))
+    ir_monitor_workspace_dir: Path = Field(default=Path("data/ir_monitor"))
     ir_monitor_schedule_cron: str = Field(default="0 * * * 1-5")
     ir_monitor_timezone: str = Field(default="Asia/Tokyo")
     ir_monitor_report_timezone: str = Field(default="Asia/Tokyo")
@@ -92,10 +112,10 @@ class Settings(BaseSettings):
         default="postgresql://localhost:5432/workflow_app"
     )
     financial_monitor_config_path: Path = Field(
-        default=Path("./config/financial_monitor/financial_monitor_targets.yaml")
+        default=Path("config/financial_monitor/financial_monitor_targets.yaml")
     )
-    financial_monitor_workspace_dir: Path = Field(default=Path("./data/financial_monitor"))
-    financial_monitor_reports_dir: Path = Field(default=Path("./reports/financial_monitor"))
+    financial_monitor_workspace_dir: Path = Field(default=Path("data/financial_monitor"))
+    financial_monitor_reports_dir: Path = Field(default=Path("reports/financial_monitor"))
     financial_monitor_schedule_cron: str = Field(default="0 21 * * 1-5")
     financial_monitor_timezone: str = Field(default="Asia/Tokyo")
     financial_monitor_report_timezone: str = Field(default="Asia/Tokyo")
@@ -108,11 +128,11 @@ class Settings(BaseSettings):
     # X Monitor
     x_monitor_database_url: str = Field(default="postgresql://localhost:5432/x_monitor")
     x_monitor_config_path: Path = Field(
-        default=Path("./config/x_monitor/x_monitor_targets.yaml")
+        default=Path("config/x_monitor/x_monitor_targets.yaml")
     )
-    x_monitor_workspace_dir: Path = Field(default=Path("./data/x_monitor"))
+    x_monitor_workspace_dir: Path = Field(default=Path("data/x_monitor"))
     x_monitor_twscrape_accounts_db: Path = Field(
-        default=Path("./data/x_monitor/twscrape/accounts.db")
+        default=Path("data/x_monitor/twscrape/accounts.db")
     )
     x_monitor_gmail_provider: str = Field(default="gmail_smtp")
     x_monitor_gmail_smtp_host: str = Field(default="smtp.gmail.com")
@@ -135,6 +155,14 @@ class Settings(BaseSettings):
     x_monitor_subject_prefix: str = Field(default="[X Monitor]")
     x_monitor_operator_emails: str = Field(default="")
     x_monitor_consecutive_failure_threshold: int = Field(default=3)
+
+    @field_validator(*REPO_PATH_FIELDS, mode="before")
+    @classmethod
+    def resolve_repo_paths(cls, value: str | Path | None) -> Path | None:
+        """Resolve repo-relative path settings from the repo root."""
+        if value in (None, ""):
+            return None
+        return resolve_repo_relative_path(value)
 
 
 def resolve_pg_backup_password(settings: Settings | None = None) -> str:
@@ -168,7 +196,7 @@ def resolve_pg_backup_password(settings: Settings | None = None) -> str:
 def get_settings(environment: str = None) -> Settings:
     """Get settings for specified environment."""
     if environment:
-        env_file = Path(f"config/environments/{environment}.env")
+        env_file = REPO_ROOT / "config" / "environments" / f"{environment}.env"
         if env_file.exists():
             return Settings(_env_file=env_file)
     return Settings()

@@ -8,11 +8,17 @@ from services.financial_monitor.financial_monitor_models import (
     FinancialMonitorCompany,
     FinancialMonitorConfig,
 )
+from shared_utils.paths import resolve_repo_relative_path, resolve_required_repo_file
 
 
 def load_financial_monitor_config(config_path: Path) -> FinancialMonitorConfig:
     """Read, merge defaults, and validate the financial monitor configuration."""
-    payload = yaml.safe_load(config_path.read_text(encoding="utf-8")) or {}
+    resolved_config_path = resolve_required_repo_file(
+        config_path,
+        description="Financial monitor config",
+        example_path="config/financial_monitor/financial_monitor_targets.example.yaml",
+    )
+    payload = yaml.safe_load(resolved_config_path.read_text(encoding="utf-8")) or {}
     companies_payload = payload.get("companies", {})
     companies = {
         company_id: FinancialMonitorCompany.model_validate(company_payload)
@@ -20,6 +26,8 @@ def load_financial_monitor_config(config_path: Path) -> FinancialMonitorConfig:
     }
     defaults = dict(payload.get("defaults", {}))
     runtime = dict(payload.get("runtime", {}))
+    if runtime.get("workspace_dir"):
+        runtime["workspace_dir"] = resolve_repo_relative_path(runtime["workspace_dir"])
     targets = payload.get("targets", [])
 
     merged_targets = []

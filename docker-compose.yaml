@@ -43,7 +43,7 @@ services:
     depends_on:
       prefect-server:
         condition: service_healthy
-    working_dir: ${PROJECT_ROOT:?set PROJECT_ROOT in .env to the repo absolute path}
+    working_dir: /opt/prefect/prefect_marimo_starter
     command:
       - /bin/sh
       - -lc
@@ -54,10 +54,10 @@ services:
       - .env
     environment:
       PREFECT_API_URL: http://prefect-server:4200/api
-      PYTHONPATH: ${PROJECT_ROOT:?set PROJECT_ROOT in .env to the repo absolute path}/src
+      PYTHONPATH: /opt/prefect/prefect_marimo_starter/src
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
       - type: bind
         source: ${PROJECT_ROOT:?set PROJECT_ROOT in .env to the repo absolute path}
-        target: ${PROJECT_ROOT:?set PROJECT_ROOT in .env to the repo absolute path}
+        target: /opt/prefect/prefect_marimo_starter

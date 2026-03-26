@@ -3,6 +3,7 @@ from pathlib import Path
 import pytest
 
 from src.services.ir_monitor.ir_monitor_config_loader import load_monitor_config
+from src.shared_utils.paths import get_repo_root
 
 
 def test_load_monitor_config_applies_target_defaults(tmp_path: Path):
@@ -217,7 +218,7 @@ targets:
     config = load_monitor_config(config_path)
 
     assert config.runtime.notify_on_no_change is True
-    assert str(config.runtime.workspace_dir).endswith("data/ir_monitor/staging")
+    assert config.runtime.workspace_dir == get_repo_root() / "data/ir_monitor/staging"
     assert config.runtime.schedule_cron == "0 * * * 1-5"
     assert not hasattr(config.targets[0], "notify_on_no_change")
 
@@ -250,8 +251,20 @@ targets:
     config = load_monitor_config(config_path)
 
     assert config.runtime.notify_on_no_change is True
-    assert str(config.runtime.workspace_dir).endswith("data/ir_monitor/legacy")
+    assert config.runtime.workspace_dir == get_repo_root() / "data/ir_monitor/legacy"
     assert config.targets[0].timezone == "Asia/Tokyo"
+
+
+def test_load_monitor_config_resolves_repo_relative_example_path_outside_repo_cwd(
+    tmp_path: Path,
+    monkeypatch,
+):
+    monkeypatch.chdir(tmp_path)
+
+    config = load_monitor_config(Path("./config/ir_monitor/ir_monitor_targets.example.yaml"))
+
+    assert config.runtime.workspace_dir == get_repo_root() / "data/ir_monitor/prod"
+    assert config.targets[0].company_name == "Mitsubishi Corporation"
 
 
 def test_load_monitor_config_defaults_selector_type_for_normalizer_targets(

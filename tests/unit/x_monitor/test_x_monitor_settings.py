@@ -1,19 +1,18 @@
-from pathlib import Path
-
 from src.shared_utils.config import get_settings
+from src.shared_utils.paths import get_repo_root
 
 
-def test_x_monitor_settings_defaults():
+def test_x_monitor_settings_defaults(monkeypatch):
+    monkeypatch.setenv("X_MONITOR_OPERATOR_EMAILS", "")
     get_settings.cache_clear()
     settings = get_settings()
+    repo_root = get_repo_root()
 
     assert settings.x_monitor_database_url == "postgresql://localhost:5432/x_monitor"
-    assert settings.x_monitor_config_path == Path(
-        "./config/x_monitor/x_monitor_targets.yaml"
-    )
-    assert settings.x_monitor_workspace_dir == Path("./data/x_monitor")
-    assert settings.x_monitor_twscrape_accounts_db == Path(
-        "./data/x_monitor/twscrape/accounts.db"
+    assert settings.x_monitor_config_path == repo_root / "config/x_monitor/x_monitor_targets.yaml"
+    assert settings.x_monitor_workspace_dir == repo_root / "data/x_monitor"
+    assert settings.x_monitor_twscrape_accounts_db == (
+        repo_root / "data/x_monitor/twscrape/accounts.db"
     )
     assert settings.x_monitor_gmail_provider == "gmail_smtp"
     assert settings.x_monitor_gmail_api_use_adc is False

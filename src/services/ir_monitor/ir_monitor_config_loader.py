@@ -5,6 +5,7 @@ from pathlib import Path
 import yaml
 
 from services.ir_monitor.ir_monitor_models import CompanyEntry, MonitorConfig
+from shared_utils.paths import resolve_repo_relative_path, resolve_required_repo_file
 
 LEGACY_RUNTIME_KEYS = {
     "notify_on_no_change",
@@ -15,7 +16,12 @@ LEGACY_RUNTIME_KEYS = {
 
 def load_monitor_config(config_path: Path) -> MonitorConfig:
     """Read, merge defaults, and validate the monitor configuration."""
-    payload = yaml.safe_load(config_path.read_text(encoding="utf-8")) or {}
+    resolved_config_path = resolve_required_repo_file(
+        config_path,
+        description="IR monitor config",
+        example_path="config/ir_monitor/ir_monitor_targets.example.yaml",
+    )
+    payload = yaml.safe_load(resolved_config_path.read_text(encoding="utf-8")) or {}
     companies_payload = payload.get("companies", {})
     companies = {
         company_id: CompanyEntry.model_validate(company_payload)
@@ -28,6 +34,8 @@ def load_monitor_config(config_path: Path) -> MonitorConfig:
             runtime[key] = defaults.pop(key)
         else:
             defaults.pop(key, None)
+    if runtime.get("workspace_dir"):
+        runtime["workspace_dir"] = resolve_repo_relative_path(runtime["workspace_dir"])
     targets = payload.get("targets", [])
 
     merged_targets = []

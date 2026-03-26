@@ -36,6 +36,9 @@ Set `PROJECT_ROOT` in that file to this repo's absolute path on your machine.
 FINANCIAL_MONITOR_DATABASE_URL=postgresql://localhost:5432/workflow_app
 ```
 
+If the flow will run inside the Dockerized Prefect worker and the database is on
+your host machine, use `host.docker.internal` instead of `localhost`.
+
 5. Repo-local Prefect development uses:
 
 ```bash
@@ -89,10 +92,14 @@ not in a repo-local SQLite database.
 For the repo-level Prefect dev-stack reference, including recovery and
 troubleshooting notes, see `docs/prefect/prefect_local_dev_stack.md`.
 
-The worker bind-mounts the repo into the container at the same absolute path
-declared in `PROJECT_ROOT`. That is required because this repo's `prefect.yaml`
-uses a `set_working_directory` pull step, and Prefect must be able to `chdir`
-to the same path inside the container when it loads a deployment.
+The worker bind-mounts the repo from the host path declared in `PROJECT_ROOT`,
+but the container mounts that checkout into a fixed internal path and starts
+from the repo root there. The flow code and config loaders resolve repo-relative
+paths from the actual repo root, so the host path does not need to exist inside
+the container. Docker-worker deployments use a deployment-level Prefect pull
+step that points at that fixed internal worker path instead of a host-specific
+absolute directory. Host-run deployments such as the macOS X monitor flows do
+not use that Docker-only pull step.
 
 If you want this Prefect server to share the same PostgreSQL database instance
 as other Prefect servers or applications, give this repo a unique schema name in
@@ -123,6 +130,17 @@ The server listens on `http://127.0.0.1:4201`, which matches the repo-local
 work pool exists, then starts polling it. The server startup also bootstraps the
 repo-specific schema and `pg_trgm` extension in PostgreSQL before launching the
 API.
+
+The deployment default comes from `FINANCIAL_MONITOR_CONFIG_PATH` in `.env`,
+which defaults to the tracked repo path:
+
+- `config/financial_monitor/financial_monitor_targets.yaml`
+
+That file is required for scheduled or non-dry-run deployment runs. If you want
+to smoke-test with the example targets instead, pass an explicit `config_path`
+override pointing at:
+
+- `config/financial_monitor/financial_monitor_targets.example.yaml`
 
 If a flow running inside the worker container needs to reach a database or
 other service running directly on your Mac, do not leave that service URL at

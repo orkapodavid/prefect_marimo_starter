@@ -44,6 +44,7 @@ with app.setup:
     from shared_utils.prefect_notifications import notify_on_failure
 
     SETTINGS = get_settings()
+    REPO_X_MONITOR_CONFIG_PATH = str(SETTINGS.x_monitor_config_path)
     tbl_x_monitor_flow_runs = X_MONITOR_METADATA.tables["tblXMonitorFlowRuns"]
 
 
@@ -136,7 +137,7 @@ def record_run_summary(results: list[dict]) -> dict:
 @app.function
 @flow(name="x-monitor-send-digest", log_prints=True, on_failure=[notify_on_failure])
 def run_x_monitor_send_digest(
-    config_path: str = "./config/x_monitor/x_monitor_targets.yaml",
+    config_path: str = REPO_X_MONITOR_CONFIG_PATH,
     environment: str = "dev",
 ) -> dict:
     """Send daily digest emails for matched X monitor posts."""
@@ -176,7 +177,7 @@ def _(mo):
 
     if mo.app_meta().mode == "edit":
         config_path_input = mo.ui.text(
-            value="./config/x_monitor/x_monitor_targets.yaml",
+            value=REPO_X_MONITOR_CONFIG_PATH,
             label="Config Path",
             full_width=True,
         )
@@ -235,4 +236,3 @@ def _(mo):
 
 if __name__ == "__main__":
     app.run()
-

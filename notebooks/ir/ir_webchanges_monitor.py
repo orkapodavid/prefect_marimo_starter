@@ -51,9 +51,21 @@ with app.setup:
     )
     from services.ir_monitor.ir_monitor_runner import run_webchanges_command
     from shared_utils.config import get_settings
+    from shared_utils.paths import resolve_repo_relative_path
     from shared_utils.prefect_notifications import notify_on_failure
 
     SETTINGS = get_settings()
+    REPO_IR_MONITOR_CONFIG_PATH = "./config/ir_monitor/ir_monitor_targets.yaml"
+    REPO_IR_MONITOR_EXAMPLE_CONFIG_PATH = "./config/ir_monitor/ir_monitor_targets.example.yaml"
+
+    def _default_edit_mode_config_path() -> str:
+        settings_config_path = SETTINGS.ir_monitor_config_path
+        repo_config_path = resolve_repo_relative_path(REPO_IR_MONITOR_CONFIG_PATH)
+        if settings_config_path != repo_config_path:
+            return str(settings_config_path)
+        if settings_config_path.exists():
+            return REPO_IR_MONITOR_CONFIG_PATH
+        return REPO_IR_MONITOR_EXAMPLE_CONFIG_PATH
 
     def _load_known_baseline_ids(path: Path) -> set[str]:
         if not path.exists():
@@ -84,7 +96,7 @@ with app.setup:
         workspace_dir: str | None = None,
     ) -> Path:
         if workspace_dir:
-            return Path(workspace_dir)
+            return resolve_repo_relative_path(workspace_dir)
         if config.runtime.workspace_dir is not None:
             return config.runtime.workspace_dir
         return SETTINGS.ir_monitor_workspace_dir / environment
@@ -247,7 +259,7 @@ def notify_if_needed(
 @app.function
 @flow(name="ir-webchanges-monitor", log_prints=True, on_failure=[notify_on_failure])
 def run_ir_webchanges_monitor(
-    config_path: str = "./config/ir_monitor/ir_monitor_targets.yaml",
+    config_path: str = str(SETTINGS.ir_monitor_config_path),
     environment: str = "dev",
     workspace_dir: str | None = None,
     notify_on_no_change: bool | None = None,
@@ -341,7 +353,7 @@ def _(mo):
 
     if mo.app_meta().mode == "edit":
         config_path_input = mo.ui.text(
-            value="./config/ir_monitor/ir_monitor_targets.yaml",
+            value=_default_edit_mode_config_path(),
             label="Config Path",
             full_width=True,
         )

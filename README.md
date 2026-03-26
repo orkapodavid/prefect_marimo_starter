@@ -99,10 +99,15 @@ docker compose logs -f prefect-server prefect-worker
 The repo-local Prefect stack uses `PREFECT_API_URL=http://127.0.0.1:4201/api`,
 stores Prefect server metadata in PostgreSQL, and isolates this repo from other
 Prefect servers by using a repo-specific PostgreSQL schema. Set `PROJECT_ROOT`
-in `.env` to this repo's absolute path so the containerized worker can execute
-deployments that use the repo's `set_working_directory` pull step. The Compose
-worker automatically starts against `windows-process-pool`. The full reference
-is documented in `docs/prefect/prefect_local_dev_stack.md`.
+in `.env` to this repo's absolute host path so Docker can bind-mount the repo
+into the worker container. Repo-relative config and workspace paths are resolved
+from the repo root at runtime, and Docker-worker deployments use a deployment-
+level `set_working_directory` step for the fixed container path
+`/opt/prefect/prefect_marimo_starter` instead of a host path. Host-run
+`local-process-pool` deployments such as X monitor keep using the host checkout
+directly. The Compose worker automatically starts against `windows-process-pool`.
+The full reference is documented in
+`docs/prefect/prefect_local_dev_stack.md`.
 
 ### 4. Development Loop
 

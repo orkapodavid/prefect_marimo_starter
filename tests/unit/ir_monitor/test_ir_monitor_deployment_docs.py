@@ -5,9 +5,21 @@ import yaml
 
 def test_prefect_yaml_contains_ir_monitor_deployment():
     prefect_yaml = Path("prefect.yaml").read_text(encoding="utf-8")
+    prefect_config = yaml.safe_load(prefect_yaml)
+    deployments = {deployment["name"]: deployment for deployment in prefect_config["deployments"]}
+    deployment = deployments["ir-webchanges-monitor-prod"]
+
     assert "ir-webchanges-monitor-prod" in prefect_yaml
     assert "notebooks/ir/ir_webchanges_monitor.py:run_ir_webchanges_monitor" in prefect_yaml
     assert "hourly_weekday_tokyo" in prefect_yaml
+    assert "config_path" not in deployment["parameters"]
+    assert deployment["pull"] == [
+        {
+            "prefect.deployments.steps.set_working_directory": {
+                "directory": "/opt/prefect/prefect_marimo_starter"
+            }
+        }
+    ]
 
 
 def test_docs_reference_ir_monitor_workflow():
